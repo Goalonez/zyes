@@ -17,7 +17,7 @@ Zyes 是一套面向 AI 编码代理的文档驱动工作流。它把需求、�
 ## 安装
 
 ```bash
-npx skills@latest add Goalonez/zyes --full-depth
+npx skills@latest add Goalonez/zyes
 ```
 
 根据安装器提示选择你的编码代理，并安装仓库中的全部 skills。
