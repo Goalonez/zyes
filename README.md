@@ -72,7 +72,7 @@ Pick a storage mode (`shared` or `external`); Zyes shows the full plan and waits
 /z-implement execute this plan
 ```
 
-`z-implement` advances **one** unchecked step at a time, then checks the box and appends a progress-log line (what changed, verification result, next step). When every step is done and acceptance is met, it wraps up: sets `status: done` and moves the file to `plans/done/`.
+By default `z-implement` **runs through all remaining steps continuously**, checking the box and appending a progress-log line (what changed, verification result, next step) after each one. It only pauses to ask when it hits ambiguity, a conflict, a high-risk/irreversible operation, or a failed verification (say "step mode" if you want per-step confirmation). When every step is done and acceptance is met, it wraps up: sets `status: done` and moves the file to `plans/done/`.
 
 ### 4. Pick up anywhere
 
