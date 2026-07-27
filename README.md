@@ -2,7 +2,7 @@
 
 # Zyes
 
-**A document-driven workflow for AI coding agents — plan in one Markdown file, execute across sessions and agents.**
+**A document-driven workflow for AI coding agents — the plan lives in a Markdown file, not in the chat.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Made for AI agents](https://img.shields.io/badge/for-AI%20coding%20agents-8A2BE2.svg)](#)
@@ -13,10 +13,9 @@ English | [简体中文](README.zh-CN.md)
 
 ---
 
-Long tasks fall apart when the context window compacts, the session ends, or you switch to a different agent — the plan lives only in the chat, so the next agent starts from zero.
+Long tasks fall apart when the context window compacts — the plan lives only in the chat, so when history gets summarized, the details are gone. Switching sessions or agents makes it worse, but compression is the real enemy.
 
-**Zyes fixes this by keeping the whole plan in a single local Markdown file.** Requirements, key decisions, execution steps, progress, and verification all live in one document that any agent can open and continue. No database, no state machine, no scripts — the document *is* the state.
-
+**Zyes fixes this by keeping the whole plan in a single local Markdown file.** Requirements, key decisions, execution steps, progress, and verification all live in one document that survives any compression. No database, no state machine, no scripts — the document *is* the state.
 ```text
 Confirm requirements → land one plan document → execute step by step, logging progress → wrap up when done
 ```
@@ -24,8 +23,9 @@ Confirm requirements → land one plan document → execute step by step, loggin
 ## Why Zyes
 
 - **Document is the state** — a plan's frontmatter `status`, step checkboxes, and progress log express everything. Nothing hidden.
+- **Survives context compression** — when the agent summarizes history, nothing is lost; the Markdown file is always the ground truth.
 - **Pure Markdown, zero scripts** — every skill is plain-text instructions. No Python, no runtime, no lock-in to one agent's internals.
-- **Cross-agent by design** — hand the plan document to any agent with one rule: *"read the plan, do the first unchecked step, check it off, append to the progress log."*
+- **Works across sessions and agents** — hand the plan document to any agent with one rule: *"read the plan, do the first unchecked step, check it off, append to the progress log."*
 - **Stays out of your way** — for simple one-off tasks Zyes steps aside and lets the agent handle it directly. It only kicks in when you explicitly plan something worth persisting.
 
 ## Install
@@ -147,7 +147,7 @@ Everything lives in readable, reviewable Markdown.
 
 ## When *not* to use Zyes
 
-Zyes is for work that spans sessions or multiple steps and is worth persisting. For a quick one-off edit, a pure Q&A, or anything your agent can finish in one go — skip it. The skills are deliberately scoped to stay quiet in those cases.
+Zyes is for multi-step work worth persisting — where losing context mid-task would mean starting over. For a quick one-off edit, a pure Q&A, or anything your agent can finish in one go — skip it. The skills are deliberately scoped to stay quiet in those cases.
 
 ## Credits
 
