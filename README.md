@@ -1,104 +1,157 @@
+<div align="center">
+
 # Zyes
 
-Zyes 是一套面向 AI 编码代理的文档驱动工作流。它把需求、关键决策、执行步骤、进度和验证证据保存在**单份本地 Markdown 规划文档**中，让长任务在上下文压缩、会话中断或更换代理后仍然可以可靠继续。
+**A document-driven workflow for AI coding agents — plan in one Markdown file, execute across sessions and agents.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Made for AI agents](https://img.shields.io/badge/for-AI%20coding%20agents-8A2BE2.svg)](#)
+
+English | [简体中文](README.zh-CN.md)
+
+</div>
+
+---
+
+Long tasks fall apart when the context window compacts, the session ends, or you switch to a different agent — the plan lives only in the chat, so the next agent starts from zero.
+
+**Zyes fixes this by keeping the whole plan in a single local Markdown file.** Requirements, key decisions, execution steps, progress, and verification all live in one document that any agent can open and continue. No database, no state machine, no scripts — the document *is* the state.
 
 ```text
-确认需求 → 落地一份规划文档 → 逐步执行并记录进度 → 全部完成后收尾
+Confirm requirements → land one plan document → execute step by step, logging progress → wrap up when done
 ```
 
-它适合这些场景：
+## Why Zyes
 
-- 需求需要先讨论和收敛，不能直接开始写代码；
-- 一个任务需要跨多个会话、甚至跨不同 AI agent 完成；
-- 希望代理一次只推进一个明确的执行步骤；
-- 需要保留决策理由、执行进度和验证证据；
-- 希望规划文档本身就是交接件，任何 agent 打开即可接手。
+- **Document is the state** — a plan's frontmatter `status`, step checkboxes, and progress log express everything. Nothing hidden.
+- **Pure Markdown, zero scripts** — every skill is plain-text instructions. No Python, no runtime, no lock-in to one agent's internals.
+- **Cross-agent by design** — hand the plan document to any agent with one rule: *"read the plan, do the first unchecked step, check it off, append to the progress log."*
+- **Stays out of your way** — for simple one-off tasks Zyes steps aside and lets the agent handle it directly. It only kicks in when you explicitly plan something worth persisting.
 
-## 设计理念
-
-- **文档即状态**：规划文档的 frontmatter `status`、执行步骤的 checkbox、进度日志共同表达全部状态，不依赖任何数据库或状态机脚本。
-- **纯 Markdown、零脚本**：所有 skill 都是纯文本指令，不依赖 Python 或特定 agent 的运行机制，天然可在 Claude Code、Codex、OpenCode 等之间流转。
-- **跨 agent 交接**：把规划文档交给任意 agent，只需一句约定——“读规划文档，执行第一个未勾选步骤，勾选并追加进度日志”。
-
-## 安装
+## Install
 
 ```bash
 npx skills@latest add Goalonez/zyes
 ```
 
-根据安装器提示选择你的编码代理，并安装仓库中的全部 skills。无运行时依赖。
+Follow the installer prompt to pick your coding agent and install all skills. No runtime dependencies.
 
-## 快速开始
+## Skills at a glance
 
-### 1. 初始化项目
-
-```text
-/z-init 初始化当前项目
-```
-
-`z-init` 引导你选择规划文档的保存位置（`shared` 或 `external`），写入配置前展示完整方案并等待确认。
-
-### 2. 规划需求
-
-```text
-/z-brainstorm 为设置页增加主题切换功能
-```
-
-`z-brainstorm` 先调查项目，再逐项确认真正影响行为、范围和验收的决策（能从代码查明的事实不反过来问你），最后落地一份规划文档：背景与目标、关键决策、验收标准、执行步骤、进度日志。
-
-### 3. 执行
-
-```text
-/z-implement 执行这份规划
-```
-
-`z-implement` 一次只推进一个未完成步骤，完成后勾选 checkbox 并在进度日志追加一行（做了什么、验证结果、下一步）。所有步骤完成且验收满足时，顺势收尾：把 `status` 置为 `done` 并移入 `plans/done/`。
-
-### 4. 查看与挑选
-
-```text
-/z-list-tasks 查看进行中的规划
-```
-
-`z-list-tasks` 列出所有进行中的规划及其进度和下一步，方便跨会话/跨 agent 快速挑一个继续。
-
-## 常用入口
-
-| Skill | 用途 |
+| Skill | Purpose |
 | --- | --- |
-| `/z-init` | 初始化或重新配置当前项目的存储位置 |
-| `/z-brainstorm <需求>` | 调查项目、确认需求并落地规划文档 |
-| `/z-implement` | 推进规划中的下一个步骤，完成后收尾 |
-| `/z-list-tasks` | 列出进行中的规划、进度和下一步 |
+| `/z-init` | Choose where plans are stored and wire up the project |
+| `/z-brainstorm <need>` | Investigate the codebase, confirm requirements, land a plan document |
+| `/z-implement` | Advance the next unchecked step, then wrap up when all are done |
+| `/z-list-tasks` | List active plans with progress and next step |
+| `/z-grilling` | Interrogate any decision, one question at a time (the proven core) |
 
-`z-grilling` 是规划流程复用的逐题追问能力，也可单独调用来压力测试任何决策。
+## Quick start
 
-## 保存规划文档
+### 1. Initialize
 
-初始化时可以选择两种模式：
+```text
+/z-init initialize this project
+```
 
-| 模式 | 保存位置 | 适合场景 |
+Pick a storage mode (`shared` or `external`); Zyes shows the full plan and waits for your confirmation before writing anything.
+
+### 2. Plan
+
+```text
+/z-brainstorm add a theme toggle to the settings page
+```
+
+`z-brainstorm` investigates the project, then confirms only the decisions that actually affect behavior, scope, and acceptance — facts it can find in the code, it won't ask you about. It lands one plan document: background & goals, key decisions, acceptance criteria, execution steps, progress log.
+
+> If the project isn't initialized yet, Zyes **asks first** whether you want to set it up. Say no and it steps aside — no files created, your agent just handles the request normally.
+
+### 3. Execute
+
+```text
+/z-implement execute this plan
+```
+
+`z-implement` advances **one** unchecked step at a time, then checks the box and appends a progress-log line (what changed, verification result, next step). When every step is done and acceptance is met, it wraps up: sets `status: done` and moves the file to `plans/done/`.
+
+### 4. Pick up anywhere
+
+```text
+/z-list-tasks
+```
+
+Lists every active plan with its progress and next step — so a new session, or a different agent, can grab one and continue.
+
+## The proven core: `z-grilling`
+
+`z-grilling` is a battle-tested interrogation prompt (adapted from [mattpocock/skills](https://github.com/mattpocock/skills)). It walks the decision tree one question at a time, always offering a recommended answer, looking up facts itself instead of asking, and never acting until you've reached shared understanding.
+
+`z-brainstorm` reuses it during planning, but you can invoke it standalone to pressure-test *any* idea:
+
+```text
+/z-grilling help me stress-test this architecture choice
+```
+
+## What a plan document looks like
+
+```markdown
+---
+status: in-progress      # planning | ready | in-progress | done | cancelled
+created: 2026-07-27
+slug: settings-theme-toggle
+---
+# Add a theme toggle to the settings page
+
+## Background & Goals
+Users want a dark mode. Scope: settings page only. Out of scope: per-component theming.
+
+## Key Decisions
+- D1: Persist the choice in localStorage — no backend change needed for v1.
+
+## Acceptance Criteria
+- [x] AC1: Toggle switches the whole app between light/dark instantly.
+- [ ] AC2: The choice survives a page reload.
+
+## Execution Steps
+- [x] 1. Add a theme context + toggle component.
+- [ ] 2. Persist and rehydrate the choice from localStorage.
+
+## Progress Log
+- 2026-07-27 (session A): Finished step 1; verified toggle flips theme live. Next: persistence.
+```
+
+Checkboxes are the step state. The progress log is the handoff — any agent reads the bottom and knows exactly where to pick up.
+
+## Where plans are stored
+
+Pick one mode at init time:
+
+| Mode | Location | Best for |
 | --- | --- | --- |
-| `shared` | `<repo>/.zyes` | 规划跟随仓库，由团队共同查看维护 |
-| `external` | `<ZYES_HOME>/<project-name>` | 规划保存在个人环境（如 Obsidian 库），不进入代码仓库 |
+| `shared` | `<repo>/.zyes` | Plans travel with the repo, shared by the team |
+| `external` | `<ZYES_HOME>/<project-name>` | Plans kept in your personal space (e.g. an Obsidian vault), out of the repo |
 
-两种模式使用相同结构：
+Both use the same layout:
 
 ```text
 <ZYES_PROJECT_ROOT>/
 ├── plans/
-│   ├── active/     # 进行中的规划：YYYY-MM-DD-slug.md
-│   └── done/       # 已完成 / 已取消的规划
+│   ├── active/     # in-progress plans: YYYY-MM-DD-slug.md
+│   └── done/       # completed / cancelled plans
 └── knowledge/
-    ├── CONTEXT.md  # 跨任务复用的领域词汇（越用越顺手）
-    └── adr/        # 承重架构决策
+    ├── CONTEXT.md  # reusable domain glossary (gets sharper the longer you use it)
+    └── adr/        # load-bearing architecture decisions
 ```
 
-所有承重信息都保存在可阅读、可审查的 Markdown 文件中。
+Everything lives in readable, reviewable Markdown.
 
-## 致谢
+## When *not* to use Zyes
 
-Zyes 在设计过程中参考了以下项目：
+Zyes is for work that spans sessions or multiple steps and is worth persisting. For a quick one-off edit, a pure Q&A, or anything your agent can finish in one go — skip it. The skills are deliberately scoped to stay quiet in those cases.
+
+## Credits
+
+Zyes drew on:
 
 - [mattpocock/skills](https://github.com/mattpocock/skills)
 - [Trellis](https://github.com/mindfold-ai/Trellis)

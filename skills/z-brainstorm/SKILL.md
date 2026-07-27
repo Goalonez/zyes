@@ -1,13 +1,20 @@
 ---
 name: z-brainstorm
-description: 调查代码库并逐题确认需求，落地一份可跨会话执行的规划文档。用于调用 z-brainstorm，或进入需求规划与调整。
+description: 为需要跨会话或多步骤推进的工作，调查代码库、逐题确认需求并落地一份可持久化的规划文档。用于显式调用 z-brainstorm。简单的一次性任务、纯问答或可直接完成的改动不适用，交给代理自身能力即可。
 ---
 
 # 规划需求
 
 把用户请求转成一份经过确认的规划文档。规划期间可以调查仓库、维护领域词汇，但不修改产品代码。
 
-先解析 Zyes 项目根目录：读取仓库 `AGENTS.md`/`CLAUDE.md` 的 `<!-- zyes:start -->` 受控块。缺少有效配置时先使用 `z-init`。规划文档保存在 `<ZYES_PROJECT_ROOT>/plans/active/`。
+先解析 Zyes 项目根目录：读取仓库 `AGENTS.md`/`CLAUDE.md` 的 `<!-- zyes:start -->` 受控块。
+
+**未检测到有效配置时不要自动初始化。** 用一句话询问用户：是否要初始化 Zyes 来持久化这次规划？
+
+- 用户同意 → 转 `z-init`，完成后回到本 skill。
+- 用户拒绝或只想快速处理 → **停止本 skill**，不创建任何 Zyes 文件，直接用代理自身能力处理需求。
+
+规划文档保存在 `<ZYES_PROJECT_ROOT>/plans/active/`。
 
 ## 1. 调查与追问
 
