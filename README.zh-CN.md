@@ -84,7 +84,7 @@ npx skills@latest add Goalonez/zyes
 
 ## 经实战验证的核心：`z-grilling`
 
-`z-grilling` 是一段经过实战检验的逐题追问提示词（改编自 [mattpocock/skills](https://github.com/mattpocock/skills)）。它沿决策树一次只问一个问题，每题都给出推荐答案，能自己查的事实绝不反问，达成共同理解前绝不动手。
+`z-grilling` 是一段经过实战检验的逐题追问提示词（源自 [mattpocock/skills](https://github.com/mattpocock/skills)）。它沿决策树一次只问一个问题，每题都给出推荐答案，能自己查的事实绝不反问，达成共同理解前绝不动手。
 
 `z-brainstorm` 在规划时复用它，但你也可以单独调用它来压力测试*任何*想法：
 
@@ -139,7 +139,7 @@ Checkbox 就是步骤状态。进度日志就是交接件——任何 agent 读�
 │   ├── active/     # 进行中的规划：YYYY-MM-DD-slug.md
 │   └── done/       # 已完成 / 已取消的规划
 └── knowledge/
-    ├── CONTEXT.md  # 可复用的领域词汇（越用越顺手）
+    ├── CONTEXT.md  # 可复用的领域词汇
     └── adr/        # 承重架构决策
 ```
 

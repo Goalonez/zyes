@@ -84,7 +84,7 @@ Lists every active plan with its progress and next step — so a new session, or
 
 ## The proven core: `z-grilling`
 
-`z-grilling` is a battle-tested interrogation prompt (adapted from [mattpocock/skills](https://github.com/mattpocock/skills)). It walks the decision tree one question at a time, always offering a recommended answer, looking up facts itself instead of asking, and never acting until you've reached shared understanding.
+`z-grilling` is a battle-tested interrogation prompt (sourced from [mattpocock/skills](https://github.com/mattpocock/skills)). It walks the decision tree one question at a time, always offering a recommended answer, looking up facts itself instead of asking, and never acting until you've reached shared understanding.
 
 `z-brainstorm` reuses it during planning, but you can invoke it standalone to pressure-test *any* idea:
 
@@ -139,7 +139,7 @@ Both use the same layout:
 │   ├── active/     # in-progress plans: YYYY-MM-DD-slug.md
 │   └── done/       # completed / cancelled plans
 └── knowledge/
-    ├── CONTEXT.md  # reusable domain glossary (gets sharper the longer you use it)
+    ├── CONTEXT.md  # reusable domain glossary
     └── adr/        # load-bearing architecture decisions
 ```
 
