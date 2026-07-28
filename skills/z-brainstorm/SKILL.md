@@ -1,37 +1,40 @@
 ---
 name: z-brainstorm
-description: 调查代码库、确认需求，并把一项需要多步骤推进、值得先规划再动手的工作落地成一份规划文档。仅在用户显式请求时使用。简单的一次性任务、纯问答或可直接完成的改动不适
-  用，交给代理自身能力即可。
+description: Investigate the codebase, confirm requirements, and land one multi-step piece of work into a plan document. Use only when the user explicitly asks to plan. Not for simple one-off tasks, pure Q&A, or changes the agent can just do directly.
 ---
 
-# 规划需求
+# Plan a requirement
 
-把用户请求转成一份经过确认的规划文档。规划期间可以调查仓库、维护领域词汇，但不修改产品代码。
+Turn a user request into a confirmed plan document. During planning you may investigate the repo and maintain domain vocabulary, but you do not modify product code.
 
-先解析 Zyes 项目根目录：读取仓库 `AGENTS.md`/`CLAUDE.md` 的 `<!-- zyes:start -->` 受控块。Zyes 根始终锚定在 agent 启动的工作目录（cwd）所在仓库；即使需求涉及其他仓库的文件（前后端分离、微服务等），也不要据此重新推断仓库根，跨仓库文件只当作被引用的外部代码位置。
+First resolve the Zyes project root: read the `<!-- zyes:start -->` managed block in the repo's `AGENTS.md`/`CLAUDE.md`. The Zyes root is always anchored to the repo of the working directory (cwd) where the agent started; even if the requirement touches files in other repos (split front/back end, microservices, etc.), do not re-infer the repo root from that — treat cross-repo files only as referenced external code locations.
 
-**未检测到有效配置时不要自动初始化。** 用一句话询问用户：是否要初始化 Zyes 来持久化这次规划？
+**Do not auto-initialize when no valid config is detected.** Ask the user in one line: initialize Zyes to persist this plan?
 
-- 用户同意 → 转 `z-init`，完成后回到本 skill。
-- 用户拒绝或只想快速处理 → **停止本 skill**，不创建任何 Zyes 文件，直接用代理自身能力处理需求。
+- User agrees → hand off to `z-init`, then return to this skill.
+- User declines or just wants a quick fix → **stop this skill**, create no Zyes files, and handle the request with the agent's own capabilities.
 
-规划文档保存在 `<ZYES_PROJECT_ROOT>/plans/active/`。
+Plan documents are saved under `<ZYES_PROJECT_ROOT>/plans/active/`.
 
-## 1. 调查与追问
+## Output language
 
-1. 读取与请求相关的代码、测试、配置、项目文档。
-2. 读取 `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md`（若存在）和相关 ADR，沿用已定义的领域词汇。
-3. 存在需要用户拍板的**实质决策**时，套用 [z-grilling](../z-grilling/SKILL.md) 的规则：一次只问一个问题、能查的事实自己查、每个问题都给推荐答案、达成共同理解前不落地。没有实质决策时不要制造问题。
+Write the plan document — including section headings, decisions, acceptance criteria, and progress log — in the **same language the user is conversing in**. If the repo's existing docs/plans are clearly in another language, match those instead. The section headings in the template below are **labels to translate into the output language, not literal strings to copy verbatim**. Keep the frontmatter keys (`status`, `created`, `slug`) and their enum values in English; translate only human-readable prose.
 
-## 2. 落地规划文档
+## 1. Investigate and interrogate
 
-决策收敛后，向用户展示一份规划摘要（背景、范围、关键决策、验收标准、执行步骤），推荐路径并询问是否落地。用户确认后写入单个文件：
+1. Read the code, tests, config, and project docs relevant to the request.
+2. Read `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` (if present) and relevant ADRs, and reuse the domain vocabulary already defined.
+3. When there are **substantive decisions** that need the user's call, apply the rules from [z-grilling](../z-grilling/SKILL.md): ask one question at a time, look up facts you can find yourself, offer a recommended answer for each question, and don't land anything until you've reached shared understanding. Don't manufacture questions when there is no substantive decision.
+
+## 2. Land the plan document
+
+Once decisions converge, show the user a plan summary (background, scope, key decisions, acceptance criteria, execution steps), recommend a path, and ask whether to land it. After the user confirms, write a single file:
 
 ```text
 <ZYES_PROJECT_ROOT>/plans/active/YYYY-MM-DD-<slug>.md
 ```
 
-`slug` 由标题规范化为小写 kebab-case；日期用当前本地日期。同名文件已存在时让用户选择继续该文件或换名，不覆盖。使用以下固定结构；没有内容的小节写 `none`：
+`slug` is the title normalized to lowercase kebab-case; use the current local date. If a file of the same name already exists, let the user choose to continue that file or pick another name — do not overwrite. Use the fixed structure below (translate the headings into the output language); write `none` for sections with no content:
 
 ```markdown
 ---
@@ -39,35 +42,35 @@ status: ready          # planning | ready | in-progress | done | cancelled
 created: YYYY-MM-DD
 slug: <slug>
 ---
-# <标题>
+# <Title>
 
-## 背景与目标
-问题、目标、范围内、范围外。
+## Background & Goals
+Problem, goals, in scope, out of scope.
 
-## 关键决策
-- D1: <决策> — 理由（来自追问）
+## Key Decisions
+- D1: <decision> — rationale (from interrogation)
 
-## 验收标准
-- [ ] AC1: <可观察的结果>
+## Acceptance Criteria
+- [ ] AC1: <observable outcome>
 
-## 执行步骤
-- [ ] 1. <可独立验证的垂直切片>
+## Execution Steps
+- [ ] 1. <independently verifiable vertical slice>
 - [ ] 2. ...
 
-## 进度日志
-- （执行阶段由 z-implement 追加：日期 (会话/agent)：做了什么；验证结果；下一步）
+## Progress Log
+- (appended by z-implement during execution: date (session/agent): what was done; verification result; next step)
 ```
 
-执行步骤按可独立验证的垂直切片拆分，不要为了凑数拆成琐碎步骤。刚落地、尚未开始执行时 `status` 写 `ready`；仍在追问、决策未定时写 `planning`。
+Split execution steps into independently verifiable vertical slices; don't pad with trivial steps. When the plan is just landed and not yet started, set `status` to `ready`; while still interrogating with decisions unsettled, use `planning`.
 
-## 3. 维护领域知识（按需）
+## 3. Maintain domain knowledge (as needed)
 
-规划中出现稳定的新业务术语、与既有 glossary 冲突，或产生难以反转的承重架构决策时：
+When planning surfaces stable new business terms, conflicts with the existing glossary, or produces a load-bearing architecture decision that's hard to reverse:
 
-- 术语写入 `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md`（只记稳定的业务词汇、含义、边界，不记实现细节或任务范围）。
-- 难反转且有实际替代方案的承重决策写入 `knowledge/adr/NNNN-<slug>.md`，记录 Context / Decision / Alternatives / Consequences。普通实现取舍不建 ADR。
-- 文件和目录按需懒创建，没有内容时静默跳过。
+- Write terms into `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` (record only stable business vocabulary, meaning, and boundaries — not implementation details or task scope).
+- Write hard-to-reverse load-bearing decisions with real alternatives into `knowledge/adr/NNNN-<slug>.md`, capturing Context / Decision / Alternatives / Consequences. Don't create an ADR for ordinary implementation trade-offs.
+- Create files and directories lazily as needed; skip silently when there's no content.
 
-## 衔接
+## Handoff
 
-落地文档后报告文件绝对路径和 `status`，说明可用 `z-implement` 开始执行。实现开始后若出现实质范围变化，新建一份规划文档，不改写已在执行或已完成的旧文档。
+After landing the document, report the file's absolute path and `status`, and note that `z-implement` can start execution. If a substantive scope change appears after implementation begins, create a new plan document — do not rewrite a plan that's already executing or done.

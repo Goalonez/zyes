@@ -1,61 +1,61 @@
 ---
 name: z-init
-description: 初始化当前仓库的 Zyes 工作流存储位置。仅在用户显式请求，或其他 Zyes skill 缺少有效配置需要初始化时使用。
+description: Initialize the Zyes workflow storage location for the current repo. Use only when the user explicitly asks, or when another Zyes skill is missing a valid config and needs initialization.
 ---
 
-# 设置 Zyes
+# Set up Zyes
 
-为当前仓库确定唯一的 Zyes 项目根目录，并在项目说明文件中写入定位受控块。本 skill 只配置存储位置，不创建任何规划或领域文档。写入前展示完整草稿并取得用户明确确认；更新已有文件时只改动受控块，保留其他内容。
+Determine a single Zyes project root for the current repo and write a locator managed block into the project description file. This skill only configures the storage location — it does not create any plan or domain documents. Show the full draft and get explicit confirmation from the user before writing anything; when updating an existing file, touch only the managed block and preserve all other content.
 
-## 目录结构
+## Directory layout
 
-无论哪种模式，项目根目录结构一致，全部按需懒创建，不预建空目录：
+The same layout applies in both modes. All directories are created lazily on demand — do not pre-create empty directories:
 
 ```text
 <ZYES_PROJECT_ROOT>/
 ├── plans/
-│   ├── active/          # 进行中的规划：YYYY-MM-DD-slug.md
-│   └── done/            # 已完成 / 已取消的规划
+│   ├── active/          # in-progress plans: YYYY-MM-DD-slug.md
+│   └── done/            # completed / cancelled plans
 └── knowledge/
-    ├── CONTEXT.md       # 项目领域词汇（越用越顺手）
-    └── adr/             # 承重架构决策：NNNN-slug.md
+    ├── CONTEXT.md       # project domain vocabulary
+    └── adr/             # load-bearing architecture decisions: NNNN-slug.md
 ```
 
-## 锚定原则
+## Anchoring rule
 
-Zyes 根**始终锚定在 agent 启动的工作目录（cwd）所在的仓库**。即使用户提到、或让你读写的文件属于**另一个仓库**（前后端分离、微服务等多仓库项目常见），也**不要**根据那个文件路径重新推断仓库根、也不要跑去那个仓库查找受控块。跨仓库的文件只当作“被引用的外部代码位置”，不改变 Zyes 根的归属。所有 Zyes skill 解析根目录时都遵循这一条。
+The Zyes root is **always anchored to the repo of the working directory (cwd) where the agent started**. Even when the user mentions or asks you to read/write files that belong to **another repo** (split front/back end, multi-repo microservices, etc.), **do not** re-infer the repo root from those file paths and do not look for a managed block in that other repo. Cross-repo files are only "referenced external code locations" and do not change the Zyes root. All Zyes skills follow this rule when resolving the root.
 
-## 1. 探索
+## 1. Explore
 
-从当前目录向上找到仓库根目录（见上“锚定原则”，以 cwd 所在仓库为准），读取：
+Find the repo root by walking up from the current directory (see anchoring rule above), then read:
 
-- 根目录的 `AGENTS.md` 和 `CLAUDE.md`；
-- 已有的 `<!-- zyes:start -->` 受控块；
-- 当前会话可用的全局 `AGENTS.md` 或 `CLAUDE.md` 中的 Zyes home 受控块。
+- `AGENTS.md` and `CLAUDE.md` at the repo root;
+- any existing `<!-- zyes:start -->` managed block;
+- the Zyes home managed block in the global `AGENTS.md` or `CLAUDE.md` available to the current session.
 
-项目说明文件按以下顺序选择：存在 `AGENTS.md` 时用它；否则用已有 `CLAUDE.md`；两者都没有时询问用户创建哪一个，并推荐 `AGENTS.md`。
+Choose the project description file in this order: use `AGENTS.md` if it exists; otherwise use an existing `CLAUDE.md`; if neither exists, ask the user which to create and recommend `AGENTS.md`.
 
-## 2. 选择模式
+## 2. Choose a mode
 
-已有有效受控块时优先保持当前模式，并询问是否重新配置；否则让用户选择：
+When a valid managed block already exists, prefer keeping the current mode and ask whether to reconfigure. Otherwise let the user choose:
 
-- `shared`：固定使用 `<repo>/.zyes`，随代码仓库一起版本管理。
-- `external`：使用 `<ZYES_HOME>/<project-name>`（例如放在个人 Obsidian 库中），仓库受控块不记录个人绝对路径。
+- `shared`: always uses `<repo>/.zyes`, version-controlled with the codebase.
+- `external`: uses `<ZYES_HOME>/<project-name>` (e.g. a personal Obsidian vault); the repo managed block does not record a personal absolute path.
 
-external 模式从对应全局说明文件的 Zyes home 受控块读取根目录；不存在时询问绝对路径并写入全局说明文件。项目名称默认由仓库目录名规范化为小写 kebab-case。目标目录已存在但无法确认属于当前仓库时，展示冲突让用户选择复用或改名，不覆盖。
+For external mode, read the Zyes home root from the corresponding global description file's managed block; if absent, ask for the absolute path and write it into the global description file. The project name defaults to the repo directory name normalized to lowercase kebab-case. When the target directory already exists but cannot be confirmed as belonging to the current repo, show the conflict and let the user choose to reuse or rename — do not overwrite.
 
-## 3. 展示并确认
+## 3. Show and confirm
 
-一次性展示：模式、最终绝对项目根目录、要写入的项目受控块、external 模式的全局 Zyes home 受控块。询问“是否写入这份 Zyes 配置？回复 `yes` 即可；如需调整，直接说明。”外置路径不在可写范围时另外请求运行环境授权。
+Show in one go: the mode, the final absolute project root, the project managed block to be written, and (for external mode) the global Zyes home managed block. Ask: "Write this Zyes config? Reply `yes` to confirm; describe any changes you want." If the external path is outside the writable scope, request runtime authorization separately.
 
-## 4. 写入并验证
+## 4. Write and verify
 
-- shared 模式：默认将 `plans/` 和 `knowledge/` 提交进仓库，以便跨 agent 共享；用户明确不想提交规划时，在 `<repo>/.zyes/.gitignore` 写入 `/plans/`。
-- 新增或原地更新受控块，绝不追加重复块；external 模式同时更新全局 Zyes home 受控块。
-- 重新读取所有写入的文件确认无误。
-- 报告模式、项目根目录、修改的说明文件。external 模式提示重新开启会话以加载全局配置。有待处理需求时询问是否进入 `z-brainstorm`。
+- Shared mode: by default commit `plans/` and `knowledge/` into the repo so they're shared across agents; if the user explicitly doesn't want plans committed, write `/plans/` into `<repo>/.zyes/.gitignore`.
+- Add or update the managed block in place; never append a duplicate block. For external mode, also update the global Zyes home managed block.
+- Re-read all written files to confirm correctness.
+- Report the mode, project root, and modified description files. For external mode, remind the user to restart the session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
 
-## 受控块模板
+## Managed block templates
 
 ### Shared
 
@@ -66,8 +66,8 @@ external 模式从对应全局说明文件的 Zyes home 受控块读取根目录
 - Mode: `shared`
 - Root: `.zyes`
 
-需要持久化规划的工作时，使用 Zyes skills，规划文档保存在 `.zyes/plans/`，领域词汇保存在 `.zyes/knowledge/`。
-仅当当前代理已安装并能调用 Zyes skills 时使用本节；否则忽略并遵循项目原有流程。
+Use Zyes skills for work worth persisting across sessions. Plan documents are saved under `.zyes/plans/`; domain vocabulary under `.zyes/knowledge/`.
+Only use this section when the current agent has Zyes skills installed and callable; otherwise ignore it and follow the project's existing workflow.
 <!-- zyes:end -->
 ```
 
@@ -80,19 +80,19 @@ external 模式从对应全局说明文件的 Zyes home 受控块读取根目录
 - Mode: `external`
 - Project: `project-name`
 
-从用户的全局 `AGENTS.md`（或 `CLAUDE.md`）读取 Zyes home；项目工作流根目录为 `<ZYES_HOME>/project-name`。
-仅当当前代理已安装并能调用 Zyes skills、且能解析个人 Zyes home 时使用本节；否则忽略，不要自动初始化。
+Read the Zyes home from the user's global `AGENTS.md` (or `CLAUDE.md`); the project workflow root is `<ZYES_HOME>/project-name`.
+Only use this section when the current agent has Zyes skills installed and callable and can resolve the personal Zyes home; otherwise ignore it and do not auto-initialize.
 <!-- zyes:end -->
 ```
 
-### 全局 Zyes home（external 模式）
+### Global Zyes home (external mode)
 
 ```markdown
 <!-- zyes-home:start -->
 ## Zyes home
 
-Zyes 外置工作流根目录：`/absolute/path/to/zyes-home`。
+Zyes external workflow root: `/absolute/path/to/zyes-home`.
 <!-- zyes-home:end -->
 ```
 
-项目名称使用小写 kebab-case。同一文件只能有一个对应受控块，更换路径时原地更新。
+Use lowercase kebab-case for the project name. Only one corresponding managed block may exist in a given file; update it in place when changing the path.

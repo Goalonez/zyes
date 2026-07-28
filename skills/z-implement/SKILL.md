@@ -1,66 +1,70 @@
 ---
 name: z-implement
-description: 读取一份已存在的 Zyes 规划文档，按步骤执行并记录进度，全部完成后收尾。仅在用户显式请求执行某份规划时使用。没有规划文档、或只是零散改动时不适用。
+description: Read an existing Zyes plan document, execute it step by step while logging progress, and wrap up when everything is done. Use only when the user explicitly asks to execute a plan. Not for cases with no plan document, or for scattered ad-hoc changes.
 ---
 
-# 执行规划
+# Execute a plan
 
-按顺序推进一份规划文档中的未完成步骤（默认连续执行，见第 3 节）。执行前先解析 Zyes 项目根目录（读取仓库受控块）。Zyes 根始终锚定在 agent 启动的工作目录（cwd）所在仓库；即使规划涉及其他仓库的文件（前后端分离、微服务等），也不要据此重新推断仓库根，跨仓库文件只当作被引用的外部代码位置。
+Advance the unfinished steps of a plan document in order (continuous by default, see section 3). Before executing, resolve the Zyes project root (read the repo's managed block). The Zyes root is always anchored to the repo of the working directory (cwd) where the agent started; even if the plan touches files in other repos (split front/back end, microservices, etc.), do not re-infer the repo root from that — treat cross-repo files only as referenced external code locations.
 
-**未检测到有效配置时不要自动初始化。** 询问用户是否要初始化 Zyes；同意则转 `z-init`，拒绝则**停止本 skill**，用代理自身能力处理需求，不创建任何 Zyes 文件。
+**Do not auto-initialize when no valid config is detected.** Ask the user whether to initialize Zyes; if they agree hand off to `z-init`, if they decline **stop this skill**, handle the request with the agent's own capabilities, and create no Zyes files.
 
-## 1. 选择规划文档
+## Output language
 
-- 用户指定了规划（标题或路径）时使用它。
-- 未指定时列出 `<ZYES_PROJECT_ROOT>/plans/active/` 中 `status` 为 `ready` 或 `in-progress` 的文档，让用户选择；只有一份时可直接确认后开始。
-- 读取选定文档的全文，以及 `knowledge/CONTEXT.md`（若存在）中相关术语，保持用词一致。
+Match the language of the plan document being executed: write progress-log entries, appended notes, and any new headings in that document's language. When reporting to the user in chat, follow the language the user is conversing in.
 
-## 2. 执行当前步骤
+## 1. Choose a plan document
 
-1. 首次开始执行时，把文档 `status` 从 `ready` 改为 `in-progress`。
-2. 在“执行步骤”里找到**第一个未勾选**（`- [ ]`）的步骤，作为当前步骤。
-3. 只实现当前这一个步骤。遇到歧义、与规划冲突或范围扩大时**停下来**向用户澄清，不擅自扩展。
-4. 只有已批准规划涉及的产品代码、测试、配置、文档才可修改；规划文档和领域文档写入 `<ZYES_PROJECT_ROOT>`。
-5. 遵循下方“执行准则”实现，并按风险选择验证方式（见准则中的验证分级）。
+- Use the plan the user specified (by title or path).
+- When unspecified, list documents in `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start.
+- Read the full text of the chosen document, plus relevant terms from `knowledge/CONTEXT.md` (if present), to keep wording consistent.
 
-## 执行准则
+## 2. Execute the current step
 
-目标是写出**恰如其分**的实现——既不过度工程，也不因求简而脆弱。以下是倾向性建议，结合具体场景判断：
+1. On the first execution, change the document `status` from `ready` to `in-progress`.
+2. In "Execution Steps", find the **first unchecked** (`- [ ]`) step as the current step.
+3. Implement only that one step. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user — don't expand on your own.
+4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`.
+5. Implement following the "Execution guidelines" below, and choose verification by risk (see the verification tiers in the guidelines).
 
-- **改动聚焦当前步骤**：优先解决步骤本身的目标。顺带发现的问题或可优化点，记在进度日志或提示用户，而不是在本步里一并重构，除非它确实是完成当前步骤的前提。
-- **与现有代码融为一体**：先读相邻代码，沿用它的命名、分层、错误处理与日志惯例，让改动读起来像同一个人写的。需要引入新依赖或新模式时，先说明理由并征求确认。
-- **复杂度匹配问题**：简单问题用直接的实现（如单个函数），不为假想需求提前抽象；问题本身有内在复杂度时，该拆分、该抽象就做到位。判断依据是「这个结构现在是否真的需要」，而非一味求少或求全。
-- **健壮性放在该放的地方**：在信任边界（外部输入、跨系统/跨服务调用、用户数据、并发与失败路径）做扎实的校验和错误处理；纯内部、调用方可控的逻辑保持轻量，不必层层设防。关键是让防护出现在真正会出问题的地方。
-- **验证与风险匹配**：
-  - 低风险改动（文案、样式、局部纯函数、配置微调）→ 类型检查/构建/快速手动验证即可。
-  - 核心逻辑、易回归路径、涉及数据正确性或边界条件 → 写针对性测试，覆盖关键路径与已知边界；不必穷举，但要盖住真正要紧的场景。根因不明时可先写失败测试复现再修（TDD），并记录 red/green 证据。
+## Execution guidelines
 
-## 3. 记录进度
+The goal is a **right-sized** implementation — neither over-engineered nor fragile from cutting corners. These are leanings; judge by the concrete situation:
 
-完成该步骤后，在文档内：
+- **Keep changes focused on the current step**: prioritize the step's own goal. Record incidental findings or optimization ideas in the progress log or flag them to the user, rather than refactoring them into this step — unless it's genuinely a prerequisite for completing the current step.
+- **Blend into existing code**: read adjacent code first and reuse its naming, layering, error handling, and logging conventions so the change reads like the same author wrote it. When you need a new dependency or pattern, explain why and ask first.
+- **Match complexity to the problem**: use a direct implementation (e.g. a single function) for simple problems, without pre-abstracting for imagined needs; when the problem has inherent complexity, split and abstract properly. The test is "is this structure actually needed now?", not blanket minimalism or maximalism.
+- **Put robustness where it belongs**: do solid validation and error handling at trust boundaries (external input, cross-system/cross-service calls, user data, concurrency and failure paths); keep purely internal, caller-controlled logic lightweight. The point is to place defenses where things actually go wrong.
+- **Match verification to risk**:
+  - Low-risk changes (copy, styling, local pure functions, config tweaks) → type check / build / quick manual verification is enough.
+  - Core logic, regression-prone paths, anything touching data correctness or edge conditions → write targeted tests covering the key paths and known edges; no need to be exhaustive, but cover what really matters. When the root cause is unclear, write a failing test to reproduce first (TDD) and record the red/green evidence.
 
-- 把对应步骤勾为 `- [x]`。
-- 满足的验收标准也勾为 `- [x]`。
-- 在“进度日志”追加一行：`YYYY-MM-DD (会话/agent)：完成了什么；实际执行的验证及结果；建议的下一步`。未执行的验证写明原因。
+## 3. Log progress
 
-进度日志就是跨会话/跨 agent 的交接：任何新会话读文档末尾即可接手。
+After completing the step, in the document:
 
-**默认连续执行**：`status` 为 `ready` 或 `in-progress` 的规划，决策已在 brainstorm 阶段收敛，执行阶段默认**连续推进所有未完成步骤**——每完成一步照常勾选 checkbox、追加进度日志，但**不停下来逐步征求确认**。只在遇到下列情况时才停下来向用户澄清：
+- Check the corresponding step as `- [x]`.
+- Check any satisfied acceptance criteria as `- [x]`.
+- Append one line to "Progress Log": `YYYY-MM-DD (session/agent): what was done; the verification actually run and its result; recommended next step`. Note the reason for any verification not run.
 
-- 步骤存在歧义、与规划冲突，或需要扩大范围；
-- 需要触碰安全边界的高风险 / 不可逆操作（删除文件、依赖变更、危险 Git、数据库写入、外部真实副作用等）；
-- 验证失败且无法自动定位并修复。
+The progress log is the cross-session/cross-agent handoff: any new session can pick up by reading the bottom of the document.
 
-**单步模式**：用户说“一步一停 / 单步 / step”时，切换为每完成一个步骤就报告并等待确认，再继续下一步。
+**Continuous by default**: for plans with `status` `ready` or `in-progress`, decisions already converged in the brainstorm stage, so execution **advances through all remaining steps continuously** — checking the box and appending a progress-log line after each step, but **not stopping for per-step confirmation**. Only stop to clarify with the user when:
 
-## 4. 收尾（全部完成时）
+- a step is ambiguous, conflicts with the plan, or requires expanding scope;
+- a high-risk / irreversible operation touching a safety boundary is needed (deleting files, dependency changes, dangerous Git, database writes, real external side effects, etc.);
+- verification fails and can't be automatically diagnosed and fixed.
 
-当**所有执行步骤都为 `[x]` 且所有验收标准都满足**时，本 skill 顺势收尾，不需要单独的收尾入口：
+**Step mode**: when the user says "step by step / single step / step", switch to reporting after each completed step and waiting for confirmation before continuing.
 
-1. 向用户报告：所有步骤完成、验收满足，即将收尾。
-2. 用户确认后，把 `status` 改为 `done`，并把文件从 `plans/active/` 移动到 `plans/done/`。
-3. 若执行中沉淀出稳定的领域术语或承重决策，更新 `knowledge/`（规则见 z-brainstorm 第 3 节）。
+## 4. Wrap up (when everything is done)
 
-**取消**：用户明确放弃这份规划时，把 `status` 改为 `cancelled`，在进度日志追加原因，移动到 `plans/done/`，保留已有内容供追溯。
+When **all execution steps are `[x]` and all acceptance criteria are satisfied**, this skill wraps up naturally — no separate wrap-up entry point needed:
 
-不要自动提交或推送 Git；收尾只做文档状态与位置的变更。
+1. Report to the user: all steps done, acceptance met, about to wrap up.
+2. After the user confirms, change `status` to `done` and move the file from `plans/active/` to `plans/done/`.
+3. If execution surfaced stable domain terms or load-bearing decisions, update `knowledge/` (rules in z-brainstorm section 3).
+
+**Cancel**: when the user explicitly abandons this plan, change `status` to `cancelled`, append the reason to the progress log, move it to `plans/done/`, and keep existing content for traceability.
+
+Do not auto-commit or push Git; wrap-up only changes the document's status and location.

@@ -1,38 +1,38 @@
 ---
 name: z-list-tasks
-description: 列出当前项目所有规划文档的状态、进度和下一步。仅在用户显式请求列出或查询规划状态时使用。
+description: List the status, progress, and next step of all plan documents in the current project. Use only when the user explicitly asks to list or query plan status.
 ---
 
-# 列出规划
+# List plans
 
-只读汇总当前项目的 Zyes 规划文档。不创建、不修改、不开始执行任何规划。
+Read-only summary of the current project's Zyes plan documents. Do not create, modify, or start executing any plan.
 
-先解析 Zyes 项目根目录（读取仓库受控块），以 agent 启动的工作目录（cwd）所在仓库为准，不因用户提到的其他仓库文件而改变根归属。**未检测到有效配置时**，直接回复“当前项目未启用 Zyes（没有规划文档）”，不追问是否初始化、不代替用户初始化——需要时用户自会显式运行 `z-init`。
+First resolve the Zyes project root (read the repo's managed block), anchored to the repo of the working directory (cwd) where the agent started — do not change the root based on other repo files the user mentions. **When no valid config is detected**, reply directly that Zyes is not enabled for this project (no plan documents), and do not ask whether to initialize or initialize on the user's behalf — the user will run `z-init` explicitly when needed.
 
-## 收集
+## Collect
 
-读取 `<ZYES_PROJECT_ROOT>/plans/active/` 下所有 `*.md`。对每份文档解析：
+Read all `*.md` files under `<ZYES_PROJECT_ROOT>/plans/active/`. For each document parse:
 
-- frontmatter 的 `status`、`created`、`slug`；
-- 一级标题作为“标题”；
-- “执行步骤”里 `- [x]` 与总条目数，得出进度；
-- “进度日志”最后一行的“下一步”，没有则用 status 对应的默认动作。
+- `status`, `created`, `slug` from frontmatter;
+- the top-level heading as the title;
+- the count of `- [x]` vs total items in "Execution Steps" for progress;
+- the "next step" from the last line of the "Progress Log", or the default action for the status if absent.
 
-用户明确要求时，同样读取 `plans/done/` 展示历史规划。
+When the user explicitly asks, also read `plans/done/` to show historical plans.
 
-## 输出
+## Output
 
-按 `created` 顺序输出紧凑表格：
+Output a compact table sorted by `created`:
 
-| 状态 | 标题 | 进度 | 下一步 | 路径 |
+| Status | Title | Progress | Next step | Path |
 | --- | --- | --- | --- | --- |
-| `in-progress` | … | 2/5 | 进度日志末行的下一步 | plans/active/… |
+| `in-progress` | … | 2/5 | next step from progress log | plans/active/… |
 
-“下一步”默认动作：
+Default next-step actions by status:
 
-- `planning`：继续 `z-brainstorm`，完成需求核对与文档落地。
-- `ready`：使用 `z-implement` 开始执行第一个步骤。
-- `in-progress`：使用 `z-implement` 继续下一个未勾选步骤（优先显示进度日志中的下一步）。
-- `done` / `cancelled`：已收尾，仅在查看历史时列出。
+- `planning`: continue `z-brainstorm` to finish requirement confirmation and land the document.
+- `ready`: use `z-implement` to start the first step.
+- `in-progress`: use `z-implement` to continue the next unchecked step (prefer the next step from the progress log).
+- `done` / `cancelled`: wrapped up; list only when viewing history.
 
-`plans/active/` 为空时直接说明当前没有进行中的规划。表格后只补充真正影响继续工作的异常（如文档缺 frontmatter、状态与内容矛盾）。不要推断缺失字段、不自动选择或开始任何规划。
+When `plans/active/` is empty, simply state that there are no active plans. After the table, note only genuine anomalies that affect continuing work (e.g. a document missing frontmatter, or a status that contradicts its content). Do not infer missing fields, and do not automatically select or start any plan.

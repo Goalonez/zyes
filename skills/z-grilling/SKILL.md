@@ -1,14 +1,12 @@
 ---
 name: z-grilling
-description: 围绕一个计划、决策或想法持续追问用户。适用于用户想压力测试自己的思考，或使用任何“grill”触发短语时。
+description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.
 ---
 
-# 逐题追问
+Interview me relentlessly about every aspect of this until we reach a shared understanding. Walk down each branch of the decision tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
 
-围绕这件事的每个方面持续追问我，直到我们达成共同理解。沿着决策树的每个分支往下走，一个接一个解决决策之间的依赖。每个问题都给出你的推荐答案。
+Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering.
 
-一次只问一个问题，并等待我对该问题的反馈后再继续。一次问多个问题会让人无所适从。
+If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up rather than asking me. The *decisions*, though, are mine — put each one to me and wait for my answer.
 
-如果某个*事实*可以通过探索环境（文件系统、工具等）找到，就去查，而不是问我。但*决策*属于我：把每个决策交给我，并等待我的回答。
-
-在我确认我们已经达成共同理解之前，不要执行它。
+Do not act on it until I confirm we have reached a shared understanding.
