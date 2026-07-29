@@ -27,11 +27,13 @@ The Zyes root is **always anchored to the repo of the working directory (cwd) wh
 
 ## 1. Explore
 
-Find the repo root by walking up from the current directory (see anchoring rule above), then read:
+Find the repo root by walking up from the current directory (see anchoring rule above). To locate the root, only check for repo markers such as `.git`; do not read directory contents beyond what this needs. Then read only the specific files this skill requires:
 
 - `AGENTS.md` and `CLAUDE.md` at the repo root;
-- any existing `<!-- zyes:start -->` managed block;
+- any existing `<!-- zyes:start -->` managed block in those files;
 - the Zyes home managed block in the global `AGENTS.md` or `CLAUDE.md` available to the current session.
+
+Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target those exact paths directly (e.g. read `AGENTS.md` / `CLAUDE.md` by name) instead of listing or scanning the whole repo. Reading unrelated files — `.env` and other secret/credential files, source code, dependency directories, build output, etc. — is unnecessary here and best avoided.
 
 Choose the project description file in this order: use `AGENTS.md` if it exists; otherwise use an existing `CLAUDE.md`; if neither exists, ask the user which to create and recommend `AGENTS.md`.
 
