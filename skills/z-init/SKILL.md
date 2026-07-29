@@ -5,11 +5,11 @@ description: Initialize the Zyes workflow storage location for the current repo.
 
 # Set up Zyes
 
-Determine a single Zyes project root for the current repo and write a locator managed block into the project description file. This skill only configures the storage location — it does not create any plan or domain documents. Show the full draft and get explicit confirmation from the user before writing anything; when updating an existing file, touch only the managed block and preserve all other content.
+Determine a single Zyes project root for the current repo, write a locator managed block into the project description file, and scaffold the storage directory structure. This skill configures the storage location and creates the empty directory skeleton plus a `CONTEXT.md` starter — it does not create any plan documents. Show the full draft and get explicit confirmation from the user before writing anything; when updating an existing file, touch only the managed block and preserve all other content.
 
 ## Directory layout
 
-The same layout applies in both modes. All directories are created lazily on demand — do not pre-create empty directories:
+The same layout applies in both modes. The init step creates this full skeleton up front — the two `plans/` subdirectories, `knowledge/adr/`, and a `CONTEXT.md` starter — so the workspace is ready to use immediately:
 
 ```text
 <ZYES_PROJECT_ROOT>/
@@ -17,7 +17,7 @@ The same layout applies in both modes. All directories are created lazily on dem
 │   ├── active/          # in-progress plans: YYYY-MM-DD-slug.md
 │   └── done/            # completed / cancelled plans
 └── knowledge/
-    ├── CONTEXT.md       # project domain vocabulary
+    ├── CONTEXT.md       # project domain vocabulary (created as a starter skeleton)
     └── adr/             # load-bearing architecture decisions: NNNN-slug.md
 ```
 
@@ -41,21 +41,22 @@ Choose the project description file in this order: use `AGENTS.md` if it exists;
 
 When a valid managed block already exists, prefer keeping the current mode and ask whether to reconfigure. Otherwise let the user choose:
 
-- `shared`: always uses `<repo>/.zyes`, version-controlled with the codebase.
+- `shared`: always uses `<repo>/.zyes`, so the workspace sits alongside the codebase and is reachable by anyone working in the repo.
 - `external`: uses `<ZYES_HOME>/<project-name>` (e.g. a personal Obsidian vault); the repo managed block does not record a personal absolute path.
 
 For external mode, read the Zyes home root from the corresponding global description file's managed block; if absent, ask for the absolute path and write it into the global description file. The project name defaults to the repo directory name normalized to lowercase kebab-case. When the target directory already exists but cannot be confirmed as belonging to the current repo, show the conflict and let the user choose to reuse or rename — do not overwrite.
 
 ## 3. Show and confirm
 
-Show in one go: the mode, the final absolute project root, the project managed block to be written, and (for external mode) the global Zyes home managed block. Ask: "Write this Zyes config? Reply `yes` to confirm; describe any changes you want." If the external path is outside the writable scope, request runtime authorization separately.
+Show in one go: the mode, the final absolute project root, the directory skeleton to be created (the `plans/active`, `plans/done`, `knowledge/adr` directories and the `CONTEXT.md` starter), the project managed block to be written, and (for external mode) the global Zyes home managed block. Then ask the user to confirm writing the config and scaffolding the workspace, and invite them to describe any changes instead — phrase this in the language the user is conversing in. Do not proceed without an explicit confirmation. If the external path is outside the writable scope, request runtime authorization separately.
 
 ## 4. Write and verify
 
+- Create the directory skeleton under the project root: `plans/active/`, `plans/done/`, `knowledge/adr/`, and a `knowledge/CONTEXT.md` starter (see the template below). If any of these already exist, keep them as-is and never overwrite existing content.
 - Shared mode: by default commit `plans/` and `knowledge/` into the repo so they're shared across agents; if the user explicitly doesn't want plans committed, write `/plans/` into `<repo>/.zyes/.gitignore`.
 - Add or update the managed block in place; never append a duplicate block. For external mode, also update the global Zyes home managed block.
 - Re-read all written files to confirm correctness.
-- Report the mode, project root, and modified description files. For external mode, remind the user to restart the session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
+- Report the mode, project root, the created directories and `CONTEXT.md`, and the modified description files. For external mode, remind the user to restart the session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
 
 ## Managed block templates
 
@@ -98,3 +99,15 @@ Zyes external workflow root: `/absolute/path/to/zyes-home`.
 ```
 
 Use lowercase kebab-case for the project name. Only one corresponding managed block may exist in a given file; update it in place when changing the path.
+
+## CONTEXT.md starter
+
+Create `knowledge/CONTEXT.md` with a minimal skeleton so later skills have a place to accumulate domain vocabulary. Write the heading and prose in the language the user is conversing in; keep it short and leave the body empty for later skills to fill in.
+
+```markdown
+# Project domain vocabulary
+
+> Shared terms, concepts, and conventions for this project. Zyes skills read this first and keep it up to date.
+
+_No entries yet._
+```

@@ -131,7 +131,7 @@ Pick one mode at init time:
 | `shared` | `<repo>/.zyes` | Plans travel with the repo, shared by the team |
 | `external` | `<ZYES_HOME>/<project-name>` | Plans kept in your personal space (e.g. an Obsidian vault), out of the repo |
 
-Both use the same layout:
+Both use the same layout, and `/z-init` creates the whole skeleton up front so it's ready to use:
 
 ```text
 <ZYES_PROJECT_ROOT>/

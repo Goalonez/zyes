@@ -131,7 +131,7 @@ Checkbox 就是步骤状态。进度日志就是交接件——任何 agent 读�
 | `shared` | `<repo>/.zyes` | 规划跟随仓库，团队共享 |
 | `external` | `<ZYES_HOME>/<project-name>` | 规划放在个人空间（如 Obsidian 库），不进仓库 |
 
-两种模式结构一致：
+两种模式结构一致，`/z-init` 会在初始化时把整个骨架建好，开箱即用：
 
 ```text
 <ZYES_PROJECT_ROOT>/
