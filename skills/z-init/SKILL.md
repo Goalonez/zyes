@@ -33,7 +33,7 @@ Find the repo root by walking up from the current directory (see anchoring rule 
 - any existing `<!-- zyes:start -->` managed block in those files;
 - the Zyes home managed block in the global `AGENTS.md` or `CLAUDE.md` available to the current session.
 
-Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target those exact paths directly (e.g. read `AGENTS.md` / `CLAUDE.md` by name) instead of listing or scanning the whole repo. Reading unrelated files — `.env` and other secret/credential files, source code, dependency directories, build output, etc. — is unnecessary here and best avoided.
+Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target those exact paths directly (e.g. read `AGENTS.md` / `CLAUDE.md` by name) instead of listing or scanning the whole repo. During initialization you **must not** read unrelated or non-essential artifacts — this explicitly includes `.env` and other environment/secret/credential files, and extends to source code, dependency directories, build output, and anything else not listed above.
 
 Choose the project description file in this order: use `AGENTS.md` if it exists; otherwise use an existing `CLAUDE.md`; if neither exists, ask the user which to create and recommend `AGENTS.md`.
 
