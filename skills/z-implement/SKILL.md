@@ -53,7 +53,7 @@ Every time you write or meaningfully revise an artifact, register it in the plan
 
 ## Execution guidelines
 
-Code implementation must follow the principle of minimal implementation: prioritize reusing existing code and matching the project's existing style. Solve only the explicitly requested requirement; do not proactively expand functionality, introduce unnecessary abstractions, or over-engineer. If the solution can be implemented clearly within a single function, do not split it into multiple layers.
+Code implementation must follow the principle of minimal implementation: prioritize reusing existing code and the project's existing style, solve only the explicitly requested requirement, do not proactively expand functionality, introduce unnecessary abstractions, or over-engineer, and avoid splitting logic into multiple methods when it can be clearly implemented within a single function or method.
 
 ## 3. Log progress
 
