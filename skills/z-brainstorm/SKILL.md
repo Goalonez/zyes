@@ -68,7 +68,7 @@ Problem, goals, in scope, out of scope.
 - (appended by z-implement during execution: date (session/agent): what was done; verification result; next step)
 ```
 
-Split execution steps into independently verifiable vertical slices; don't pad with trivial steps. When the plan is just landed and not yet started, set `status` to `ready`; while still interrogating with decisions unsettled, use `planning`.
+Split execution steps into the smallest independently verifiable vertical slices needed to satisfy the acceptance criteria; don't pad with trivial steps. Prefer reusing existing code and project conventions discovered during investigation. Do not plan speculative functionality, unrelated refactors, unnecessary abstractions, or work outside the confirmed scope. When the plan is just landed and not yet started, set `status` to `ready`; while still interrogating with decisions unsettled, use `planning`.
 
 ## 3. Maintain domain knowledge (as needed)
 

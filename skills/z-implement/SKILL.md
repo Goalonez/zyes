@@ -29,7 +29,7 @@ Whenever you need today's date — for a progress-log entry, for example — **o
 2. In "Execution Steps", find the **first unchecked** (`- [ ]`) step as the current step.
 3. Implement only that one step. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user — don't expand on your own.
 4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and non-code artifacts into the current plan's `artifacts/` (see "Where non-code artifacts go" below).
-5. Implement following the "Execution guidelines" below, and choose verification by risk (see the verification tiers in the guidelines).
+5. Implement following the "Execution guidelines" below, and use judgment to choose the smallest relevant verification that provides sufficient evidence for the current step and its acceptance criteria.
 
 ## Where non-code artifacts go
 
