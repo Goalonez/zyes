@@ -155,10 +155,6 @@ Both use the same layout, and `/z-init` creates the whole skeleton up front so i
 
 Everything lives in readable, reviewable Markdown.
 
-## When *not* to use Zyes
-
-Zyes is for multi-step work worth persisting — where losing context mid-task would mean starting over. For a quick one-off edit, a pure Q&A, or anything your agent can finish in one go — skip it. The skills are deliberately scoped to stay quiet in those cases.
-
 ## Credits
 
 Zyes drew on:
