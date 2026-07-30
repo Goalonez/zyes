@@ -53,15 +53,7 @@ Every time you write or meaningfully revise an artifact, register it in the plan
 
 ## Execution guidelines
 
-The goal is a **right-sized** implementation — neither over-engineered nor fragile from cutting corners. These are leanings; judge by the concrete situation:
-
-- **Keep changes focused on the current step**: prioritize the step's own goal. Record incidental findings or optimization ideas in the progress log or flag them to the user, rather than refactoring them into this step — unless it's genuinely a prerequisite for completing the current step.
-- **Blend into existing code**: read adjacent code first and reuse its naming, layering, error handling, and logging conventions so the change reads like the same author wrote it. When you need a new dependency or pattern, explain why and ask first.
-- **Match complexity to the problem**: use a direct implementation (e.g. a single function) for simple problems, without pre-abstracting for imagined needs; when the problem has inherent complexity, split and abstract properly. The test is "is this structure actually needed now?", not blanket minimalism or maximalism.
-- **Put robustness where it belongs**: do solid validation and error handling at trust boundaries (external input, cross-system/cross-service calls, user data, concurrency and failure paths); keep purely internal, caller-controlled logic lightweight. The point is to place defenses where things actually go wrong.
-- **Match verification to risk**:
-  - Low-risk changes (copy, styling, local pure functions, config tweaks) → type check / build / quick manual verification is enough.
-  - Core logic, regression-prone paths, anything touching data correctness or edge conditions → write targeted tests covering the key paths and known edges; no need to be exhaustive, but cover what really matters. When the root cause is unclear, write a failing test to reproduce first (TDD) and record the red/green evidence.
+Code implementation must follow the principle of minimal implementation: prioritize reusing existing code and matching the project's existing style. Solve only the explicitly requested requirement; do not proactively expand functionality, introduce unnecessary abstractions, or over-engineer. If the solution can be implemented clearly within a single function, do not split it into multiple layers.
 
 ## 3. Log progress
 
