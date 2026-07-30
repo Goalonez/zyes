@@ -14,7 +14,11 @@ First resolve the Zyes project root: read the `<!-- zyes:start -->` managed bloc
 - User agrees → hand off to `z-init`, then return to this skill.
 - User declines or just wants a quick fix → **stop this skill**, create no Zyes files, and handle the request with the agent's own capabilities.
 
-Plan documents are saved under `<ZYES_PROJECT_ROOT>/plans/active/`.
+Plan documents are saved under `<ZYES_PROJECT_ROOT>/plans/active/`, one directory per plan.
+
+## Getting the current date
+
+Whenever you need today's date — for a plan directory name or the `created` field — **obtain it by actually running a command** (`date +%F` on macOS/Linux, `Get-Date -Format yyyy-MM-dd` in Windows PowerShell). Never infer it from your own memory, from a date that appears elsewhere in the conversation, or from dates found in existing documents — those are routinely wrong or stale. If you cannot run a command, ask the user for today's date instead of guessing.
 
 ## Output language
 
@@ -28,13 +32,13 @@ Write the plan document — including section headings, decisions, acceptance cr
 
 ## 2. Land the plan document
 
-Once decisions converge, show the user a plan summary (background, scope, key decisions, acceptance criteria, execution steps), recommend a path, and ask whether to land it. After the user confirms, write a single file:
+Once decisions converge, show the user a plan summary (background, scope, key decisions, acceptance criteria, execution steps), recommend a path, and ask whether to land it. After the user confirms, create one directory for the plan and write the plan document inside it:
 
 ```text
-<ZYES_PROJECT_ROOT>/plans/active/YYYY-MM-DD-<slug>.md
+<ZYES_PROJECT_ROOT>/plans/active/YYYY-MM-DD-<slug>/PLAN.md
 ```
 
-`slug` is the title normalized to lowercase kebab-case; use the current local date. If a file of the same name already exists, let the user choose to continue that file or pick another name — do not overwrite. Use the fixed structure below (translate the headings into the output language); write `none` for sections with no content:
+`slug` is the title normalized to lowercase kebab-case; the date is today's, obtained as described in "Getting the current date" above. Do not create `artifacts/` now — `z-implement` creates it on demand. If a directory of the same name already exists, let the user choose to continue that plan or pick another name — do not overwrite. Use the fixed structure below (translate the headings into the output language); write `none` for sections with no content:
 
 ```markdown
 ---
@@ -57,6 +61,9 @@ Problem, goals, in scope, out of scope.
 - [ ] 1. <independently verifiable vertical slice>
 - [ ] 2. ...
 
+## Artifacts
+- (registered by z-implement as artifacts are produced: `artifacts/<name>.md` — what it is and what it's for)
+
 ## Progress Log
 - (appended by z-implement during execution: date (session/agent): what was done; verification result; next step)
 ```
@@ -73,4 +80,4 @@ When planning surfaces stable new business terms, conflicts with the existing gl
 
 ## Handoff
 
-After landing the document, report the file's absolute path and `status`, and note that `z-implement` can start execution. If a substantive scope change appears after implementation begins, create a new plan document — do not rewrite a plan that's already executing or done.
+After landing the document, report the plan directory's absolute path and `status`, and note that `z-implement` can start execution. If a substantive scope change appears after implementation begins, create a new plan directory — do not rewrite a plan that's already executing or done.

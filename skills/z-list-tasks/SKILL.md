@@ -11,7 +11,12 @@ First resolve the Zyes project root (read the repo's managed block), anchored to
 
 ## Collect
 
-Read all `*.md` files under `<ZYES_PROJECT_ROOT>/plans/active/`. For each document parse:
+Collect every plan under `<ZYES_PROJECT_ROOT>/plans/active/`, covering both layouts:
+
+- current layout: one directory per plan, so read `plans/active/*/PLAN.md`;
+- legacy layout: a flat `plans/active/*.md` file. Read these too — do not convert or move them.
+
+For each document parse:
 
 - `status`, `created`, `slug` from frontmatter;
 - the top-level heading as the title;
@@ -26,7 +31,7 @@ Output a compact table sorted by `created`:
 
 | Status | Title | Progress | Next step | Path |
 | --- | --- | --- | --- | --- |
-| `in-progress` | … | 2/5 | next step from progress log | plans/active/… |
+| `in-progress` | … | 2/5 | next step from progress log | plans/active/2026-07-30-slug/PLAN.md |
 
 Default next-step actions by status:
 

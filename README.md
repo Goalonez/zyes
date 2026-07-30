@@ -72,7 +72,7 @@ Pick a storage mode (`shared` or `external`); Zyes shows the full plan and waits
 /z-implement execute this plan
 ```
 
-By default `z-implement` **runs through all remaining steps continuously**, checking the box and appending a progress-log line (what changed, verification result, next step) after each one. It only pauses to ask when it hits ambiguity, a conflict, a high-risk/irreversible operation, or a failed verification (say "step mode" if you want per-step confirmation). When every step is done and acceptance is met, it wraps up: sets `status: done` and moves the file to `plans/done/`.
+By default `z-implement` **runs through all remaining steps continuously**, checking the box and appending a progress-log line (what changed, verification result, next step) after each one. It only pauses to ask when it hits ambiguity, a conflict, a high-risk/irreversible operation, or a failed verification (say "step mode" if you want per-step confirmation). Any non-code artifact it produces along the way (SQL scripts, review reports, manual checklists) lands in the plan's own `artifacts/` directory and gets indexed in the document. When every step is done and acceptance is met, it wraps up: sets `status: done` and moves the whole plan directory to `plans/done/`.
 
 ### 4. Pick up anywhere
 
@@ -93,6 +93,8 @@ Lists every active plan with its progress and next step — so a new session, or
 ```
 
 ## What a plan document looks like
+
+`plans/active/2026-07-27-settings-theme-toggle/PLAN.md`:
 
 ```markdown
 ---
@@ -116,6 +118,9 @@ Users want a dark mode. Scope: settings page only. Out of scope: per-component t
 - [x] 1. Add a theme context + toggle component.
 - [ ] 2. Persist and rehydrate the choice from localStorage.
 
+## Artifacts
+- `artifacts/contrast-audit.md` — WCAG contrast check for the dark palette.
+
 ## Progress Log
 - 2026-07-27 (session A): Finished step 1; verified toggle flips theme live. Next: persistence.
 ```
@@ -136,12 +141,17 @@ Both use the same layout, and `/z-init` creates the whole skeleton up front so i
 ```text
 <ZYES_PROJECT_ROOT>/
 ├── plans/
-│   ├── active/     # in-progress plans: YYYY-MM-DD-slug.md
-│   └── done/       # completed / cancelled plans
+│   ├── active/                  # one directory per in-progress plan
+│   │   └── YYYY-MM-DD-slug/
+│   │       ├── PLAN.md          # the plan document
+│   │       └── artifacts/       # SQL, reports, checklists for this plan
+│   └── done/                    # completed / cancelled plans
 └── knowledge/
-    ├── CONTEXT.md  # reusable domain glossary
-    └── adr/        # load-bearing architecture decisions
+    ├── CONTEXT.md               # reusable domain glossary
+    └── adr/                     # load-bearing architecture decisions
 ```
+
+**One plan is one directory.** Non-code artifacts produced while executing a plan — DDL scripts, execution-plan reports, manual verification checklists — go into that plan's `artifacts/`, never scattered around your codebase. Wrapping up moves the whole directory to `plans/done/`, so links inside `PLAN.md` keep working.
 
 Everything lives in readable, reviewable Markdown.
 

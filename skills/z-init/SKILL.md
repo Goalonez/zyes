@@ -14,12 +14,17 @@ The same layout applies in both modes. The init step creates this full skeleton 
 ```text
 <ZYES_PROJECT_ROOT>/
 ├── plans/
-│   ├── active/          # in-progress plans: YYYY-MM-DD-slug.md
-│   └── done/            # completed / cancelled plans
+│   ├── active/                      # in-progress plans, one directory per plan
+│   │   └── YYYY-MM-DD-<slug>/       # created by z-brainstorm
+│   │       ├── PLAN.md              # the plan document itself
+│   │       └── artifacts/           # non-code artifacts for this plan (lazily created)
+│   └── done/                        # completed / cancelled plans (whole directories)
 └── knowledge/
-    ├── CONTEXT.md       # project domain vocabulary (created as a starter skeleton)
-    └── adr/             # load-bearing architecture decisions: NNNN-slug.md
+    ├── CONTEXT.md                   # project domain vocabulary (created as a starter skeleton)
+    └── adr/                         # load-bearing architecture decisions: NNNN-slug.md
 ```
+
+**One plan is one directory.** The plan document is always named `PLAN.md`, and every non-code artifact produced while executing that plan lives in its sibling `artifacts/`. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/adr/` — individual plan directories and their `artifacts/` are created later, on demand.
 
 ## Anchoring rule
 
@@ -53,7 +58,6 @@ Show in one go: the mode, the final absolute project root, the directory skeleto
 ## 4. Write and verify
 
 - Create the directory skeleton under the project root: `plans/active/`, `plans/done/`, `knowledge/adr/`, and a `knowledge/CONTEXT.md` starter (see the template below). If any of these already exist, keep them as-is and never overwrite existing content.
-- Shared mode: by default commit `plans/` and `knowledge/` into the repo so they're shared across agents; if the user explicitly doesn't want plans committed, write `/plans/` into `<repo>/.zyes/.gitignore`.
 - Add or update the managed block in place; never append a duplicate block. For external mode, also update the global Zyes home managed block.
 - Re-read all written files to confirm correctness.
 - Report the mode, project root, the created directories and `CONTEXT.md`, and the modified description files. For external mode, remind the user to restart the session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
@@ -69,7 +73,7 @@ Show in one go: the mode, the final absolute project root, the directory skeleto
 - Mode: `shared`
 - Root: `.zyes`
 
-Use Zyes skills for work worth persisting across sessions. Plan documents are saved under `.zyes/plans/`; domain vocabulary under `.zyes/knowledge/`.
+Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `.zyes/plans/active/<date-slug>/PLAN.md`; non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase. Domain vocabulary lives under `.zyes/knowledge/`.
 Only use this section when the current agent has Zyes skills installed and callable; otherwise ignore it and follow the project's existing workflow.
 <!-- zyes:end -->
 ```
@@ -83,7 +87,7 @@ Only use this section when the current agent has Zyes skills installed and calla
 - Mode: `external`
 - Project: `project-name`
 
-Read the Zyes home from the user's global `AGENTS.md` (or `CLAUDE.md`); the project workflow root is `<ZYES_HOME>/project-name`.
+Read the Zyes home from the user's global `AGENTS.md` (or `CLAUDE.md`); the project workflow root is `<ZYES_HOME>/project-name`. Plan documents are saved as `<root>/plans/active/<date-slug>/PLAN.md`; non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase.
 Only use this section when the current agent has Zyes skills installed and callable and can resolve the personal Zyes home; otherwise ignore it and do not auto-initialize.
 <!-- zyes:end -->
 ```

@@ -13,10 +13,14 @@ Advance the unfinished steps of a plan document in order (continuous by default,
 
 Match the language of the plan document being executed: write progress-log entries, appended notes, and any new headings in that document's language. When reporting to the user in chat, follow the language the user is conversing in.
 
+## Getting the current date
+
+Whenever you need today's date — for a progress-log entry, for example — **obtain it by actually running a command** (`date +%F` on macOS/Linux, `Get-Date -Format yyyy-MM-dd` in Windows PowerShell). Never infer it from your own memory, from a date that appears elsewhere in the conversation, or from dates already present in the plan document — in a long session the last logged date is usually stale, and copying it silently corrupts the log. Re-obtain the date before each write rather than reusing one from earlier in the session.
+
 ## 1. Choose a plan document
 
 - Use the plan the user specified (by title or path).
-- When unspecified, list documents in `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start.
+- When unspecified, list plans under `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start. Each plan is a directory containing `PLAN.md`; older plans may still be a flat `<date-slug>.md` file directly under `plans/active/` — read those in place and leave their layout as-is.
 - Read the full text of the chosen document, plus relevant terms from `knowledge/CONTEXT.md` (if present), to keep wording consistent.
 
 ## 2. Execute the current step
@@ -24,8 +28,28 @@ Match the language of the plan document being executed: write progress-log entri
 1. On the first execution, change the document `status` from `ready` to `in-progress`.
 2. In "Execution Steps", find the **first unchecked** (`- [ ]`) step as the current step.
 3. Implement only that one step. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user — don't expand on your own.
-4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`.
+4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and non-code artifacts into the current plan's `artifacts/` (see "Where non-code artifacts go" below).
 5. Implement following the "Execution guidelines" below, and choose verification by risk (see the verification tiers in the guidelines).
+
+## Where non-code artifacts go
+
+Execution often produces files that are **not part of the product build**: DDL/SQL scripts, execution-plan and index review reports, manual verification checklists, data reconciliation results, performance measurements, migration runbooks. All of these go into the current plan's own directory:
+
+```text
+<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/artifacts/<name>.md
+```
+
+Create `artifacts/` lazily, on first use. For a legacy flat plan file (`plans/active/<date-slug>.md`), create the sibling directory `plans/active/<date-slug>/artifacts/` and use that.
+
+Deciding where a file belongs:
+
+- Consumed by the product build, release process, or version control (Flyway/Liquibase migration scripts, real config, official documentation) → put it in the code repository following that repo's existing conventions.
+- Only meant to be read by a human, executed once by hand, or kept for audit → `artifacts/`.
+- When unsure, choose `artifacts/` and say so when you report.
+
+**Do not create analysis reports, SQL drafts, acceptance checklists, benchmark output, or similar scratch files inside the code repository.** Delete throwaway verification scripts once used, keeping only the conclusion and any output worth retaining in `artifacts/`. Name artifacts in short kebab-case without a date prefix (the plan directory name already carries the date). When an artifact evolves, **update it in place** — do not create a second near-identical file alongside it.
+
+Every time you write or meaningfully revise an artifact, register it in the plan document's "Artifacts" section as a relative link plus a one-line description of what it is and what it's for. Relative links stay valid after wrap-up because the whole plan directory moves together. If a plan document predates this section, add it above "Progress Log", using the document's own language.
 
 ## Execution guidelines
 
@@ -45,7 +69,8 @@ After completing the step, in the document:
 
 - Check the corresponding step as `- [x]`.
 - Check any satisfied acceptance criteria as `- [x]`.
-- Append one line to "Progress Log": `YYYY-MM-DD (session/agent): what was done; the verification actually run and its result; recommended next step`. Note the reason for any verification not run.
+- Register any artifact written or revised during this step in "Artifacts" (see "Where non-code artifacts go").
+- Append one line to "Progress Log": `YYYY-MM-DD (session/agent): what was done; the verification actually run and its result; recommended next step`. Note the reason for any verification not run. Obtain the date by running a command as described in "Getting the current date" — do not copy the date from the previous log line.
 
 The progress log is the cross-session/cross-agent handoff: any new session can pick up by reading the bottom of the document.
 
@@ -62,9 +87,9 @@ The progress log is the cross-session/cross-agent handoff: any new session can p
 When **all execution steps are `[x]` and all acceptance criteria are satisfied**, this skill wraps up naturally — no separate wrap-up entry point needed:
 
 1. Report to the user: all steps done, acceptance met, about to wrap up.
-2. After the user confirms, change `status` to `done` and move the file from `plans/active/` to `plans/done/`.
+2. After the user confirms, change `status` to `done` and move **the whole plan directory** — `PLAN.md` together with `artifacts/` — from `plans/active/` to `plans/done/`. Move the directory as a unit so the relative links inside `PLAN.md` keep resolving; never move `PLAN.md` on its own and leave its artifacts behind.
 3. If execution surfaced stable domain terms or load-bearing decisions, update `knowledge/` (rules in z-brainstorm section 3).
 
-**Cancel**: when the user explicitly abandons this plan, change `status` to `cancelled`, append the reason to the progress log, move it to `plans/done/`, and keep existing content for traceability.
+**Cancel**: when the user explicitly abandons this plan, change `status` to `cancelled`, append the reason to the progress log, move the whole plan directory to `plans/done/`, and keep existing content for traceability.
 
 Do not auto-commit or push Git; wrap-up only changes the document's status and location.

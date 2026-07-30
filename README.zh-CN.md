@@ -72,7 +72,7 @@ npx skills@latest add Goalonez/zyes
 /z-implement 执行这份规划
 ```
 
-`z-implement` 默认**连续推进所有未完成步骤**，每完成一步就勾选 checkbox 并在进度日志追加一行（改了什么、验证结果、下一步），只在遇到歧义、冲突、高风险不可逆操作或验证失败时才停下来问你（想逐步确认就说“单步”）。所有步骤完成且验收满足时，顺势收尾：把 `status` 置为 `done` 并移入 `plans/done/`。
+`z-implement` 默认**连续推进所有未完成步骤**，每完成一步就勾选 checkbox 并在进度日志追加一行（改了什么、验证结果、下一步），只在遇到歧义、冲突、高风险不可逆操作或验证失败时才停下来问你（想逐步确认就说“单步”）。过程中产生的非代码产物（SQL 脚本、审核报告、人工复测清单）会落到该规划自己的 `artifacts/` 目录，并登记进正文的产物清单。所有步骤完成且验收满足时，顺势收尾：把 `status` 置为 `done` 并把整个规划目录移入 `plans/done/`。
 
 ### 4. 随处接手
 
@@ -93,6 +93,8 @@ npx skills@latest add Goalonez/zyes
 ```
 
 ## 规划文档长什么样
+
+`plans/active/2026-07-27-settings-theme-toggle/PLAN.md`：
 
 ```markdown
 ---
@@ -116,6 +118,9 @@ slug: settings-theme-toggle
 - [x] 1. 增加主题 context + 切换组件。
 - [ ] 2. 从 localStorage 持久化并回填选择。
 
+## 产物清单
+- `artifacts/contrast-audit.md` —— 暗色配色的 WCAG 对比度核查记录。
+
 ## 进度日志
 - 2026-07-27 (会话 A)：完成步骤 1；验证切换可实时改变主题。下一步：持久化。
 ```
@@ -136,12 +141,17 @@ Checkbox 就是步骤状态。进度日志就是交接件——任何 agent 读�
 ```text
 <ZYES_PROJECT_ROOT>/
 ├── plans/
-│   ├── active/     # 进行中的规划：YYYY-MM-DD-slug.md
-│   └── done/       # 已完成 / 已取消的规划
+│   ├── active/                  # 每个进行中的规划一个目录
+│   │   └── YYYY-MM-DD-slug/
+│   │       ├── PLAN.md          # 规划正文
+│   │       └── artifacts/       # 该规划的 SQL、报告、复测清单等产物
+│   └── done/                    # 已完成 / 已取消的规划
 └── knowledge/
-    ├── CONTEXT.md  # 可复用的领域词汇
-    └── adr/        # 承重架构决策
+    ├── CONTEXT.md               # 可复用的领域词汇
+    └── adr/                     # 承重架构决策
 ```
+
+**一个规划就是一个目录。** 执行过程中产生的非代码产物——DDL 脚本、执行计划报告、人工复测清单——统一放进该规划的 `artifacts/`，不会散落在代码仓库里。收尾时整个目录移入 `plans/done/`，`PLAN.md` 里的相对链接依然有效。
 
 所有承重信息都保存在可阅读、可审查的 Markdown 文件中。
 
