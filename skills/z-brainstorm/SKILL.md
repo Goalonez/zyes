@@ -27,8 +27,10 @@ Write the plan document — including section headings, decisions, acceptance cr
 ## 1. Investigate and interrogate
 
 1. Read the code, tests, config, and project docs relevant to the request.
-2. Read `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` (if present) and relevant ADRs, and reuse the domain vocabulary already defined.
+2. Read `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` (if present) and the ADRs relevant to the area you're touching, and reuse the domain vocabulary already defined.
 3. When there are **substantive decisions** that need the user's call, apply the rules from [z-grilling](../z-grilling/SKILL.md): ask one question at a time, look up facts you can find yourself, offer a recommended answer for each question, and don't land anything until you've reached shared understanding. Don't manufacture questions when there is no substantive decision.
+
+While interrogating, whenever a domain term gets pinned down, an existing term turns out to be overloaded, or the user's wording contradicts the glossary, hand off to [z-domain](../z-domain/SKILL.md) and record it **right then** — not after the plan lands. That is the moment the wording and the reason are both still in hand.
 
 ## 2. Land the plan document
 
@@ -70,13 +72,9 @@ Problem, goals, in scope, out of scope.
 
 Split execution steps into the smallest independently verifiable vertical slices needed to satisfy the acceptance criteria; don't pad with trivial steps. Prefer reusing existing code and project conventions discovered during investigation. Do not plan speculative functionality, unrelated refactors, unnecessary abstractions, or work outside the confirmed scope. When the plan is just landed and not yet started, set `status` to `ready`; while still interrogating with decisions unsettled, use `planning`.
 
-## 3. Maintain domain knowledge (as needed)
+## 3. Long-lived domain knowledge
 
-When planning surfaces stable new business terms, conflicts with the existing glossary, or produces a load-bearing architecture decision that's hard to reverse:
-
-- Write terms into `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` (record only stable business vocabulary, meaning, and boundaries — not implementation details or task scope).
-- Write hard-to-reverse load-bearing decisions with real alternatives into `knowledge/adr/NNNN-<slug>.md`, capturing Context / Decision / Alternatives / Consequences. Don't create an ADR for ordinary implementation trade-offs.
-- Create files and directories lazily as needed; skip silently when there's no content.
+Terms and load-bearing decisions are owned by [z-domain](../z-domain/SKILL.md) — terms are recorded inline during interrogation (section 1), and a decision is promoted to an ADR only when it constrains future work beyond this plan. Everything specific to this plan stays in "Key Decisions" above.
 
 ## Handoff
 

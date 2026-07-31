@@ -21,7 +21,7 @@ Whenever you need today's date — for a progress-log entry, for example — **o
 
 - Use the plan the user specified (by title or path).
 - When unspecified, list plans under `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start. Each plan is a directory containing `PLAN.md`; older plans may still be a flat `<date-slug>.md` file directly under `plans/active/` — read those in place and leave their layout as-is.
-- Read the full text of the chosen document, plus relevant terms from `knowledge/CONTEXT.md` (if present), to keep wording consistent.
+- Read the full text of the chosen document, plus relevant terms from `knowledge/CONTEXT.md` (if present) and the ADRs relevant to the area you're touching, to keep wording consistent.
 
 ## 2. Execute the current step
 
@@ -80,7 +80,7 @@ When **all execution steps are `[x]` and all acceptance criteria are satisfied**
 
 1. Report to the user: all steps done, acceptance met, about to wrap up.
 2. After the user confirms, change `status` to `done` and move **the whole plan directory** — `PLAN.md` together with `artifacts/` — from `plans/active/` to `plans/done/`. Move the directory as a unit so the relative links inside `PLAN.md` keep resolving; never move `PLAN.md` on its own and leave its artifacts behind.
-3. If execution surfaced stable domain terms or load-bearing decisions, update `knowledge/` (rules in z-brainstorm section 3).
+3. If execution pinned down or overturned a domain term, or forced a decision that constrains future work beyond this plan, hand off to [z-domain](../z-domain/SKILL.md). Most wrap-ups have nothing to record here — don't manufacture an entry.
 
 **Cancel**: when the user explicitly abandons this plan, change `status` to `cancelled`, append the reason to the progress log, move the whole plan directory to `plans/done/`, and keep existing content for traceability.
 

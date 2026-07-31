@@ -19,12 +19,14 @@ The same layout applies in both modes. The init step creates this full skeleton 
 │   │       ├── PLAN.md              # the plan document itself
 │   │       └── artifacts/           # non-code artifacts for this plan (lazily created)
 │   └── done/                        # completed / cancelled plans (whole directories)
-└── knowledge/
-    ├── CONTEXT.md                   # project domain vocabulary (created as a starter skeleton)
-    └── adr/                         # load-bearing architecture decisions: NNNN-slug.md
+└── knowledge/                       # filled in by z-domain, empty until then
+    ├── CONTEXT.md                   # project glossary (created as a starter skeleton)
+    └── adr/                         # load-bearing decisions: NNNN-slug.md
 ```
 
 **One plan is one directory.** The plan document is always named `PLAN.md`, and every non-code artifact produced while executing that plan lives in its sibling `artifacts/`. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/adr/` — individual plan directories and their `artifacts/` are created later, on demand.
+
+The `knowledge/` scaffold is created empty on purpose, so the workspace shows from day one where domain knowledge belongs. [z-domain](../z-domain/SKILL.md) owns its contents and treats the starter as a placeholder to replace, never as existing content.
 
 ## Anchoring rule
 
@@ -73,7 +75,7 @@ Show in one go: the mode, the final absolute project root, the directory skeleto
 - Mode: `shared`
 - Root: `.zyes`
 
-Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `.zyes/plans/active/<date-slug>/PLAN.md`; non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase. Domain vocabulary lives under `.zyes/knowledge/`.
+Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `.zyes/plans/active/<date-slug>/PLAN.md`; non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase. Before work that touches this project's domain, read the glossary `.zyes/knowledge/CONTEXT.md` and any ADRs under `.zyes/knowledge/adr/` relevant to the area you're touching, and reuse the vocabulary defined there.
 Only use this section when the current agent has Zyes skills installed and callable; otherwise ignore it and follow the project's existing workflow.
 <!-- zyes:end -->
 ```
@@ -87,7 +89,7 @@ Only use this section when the current agent has Zyes skills installed and calla
 - Mode: `external`
 - Project: `project-name`
 
-Read the Zyes home from the user's global `AGENTS.md` (or `CLAUDE.md`); the project workflow root is `<ZYES_HOME>/project-name`. Plan documents are saved as `<root>/plans/active/<date-slug>/PLAN.md`; non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase.
+Read the Zyes home from the user's global `AGENTS.md` (or `CLAUDE.md`); the project workflow root is `<ZYES_HOME>/project-name`. Plan documents are saved as `<root>/plans/active/<date-slug>/PLAN.md`; non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase. Before work that touches this project's domain, read the glossary `<root>/knowledge/CONTEXT.md` and any ADRs under `<root>/knowledge/adr/` relevant to the area you're touching, and reuse the vocabulary defined there.
 Only use this section when the current agent has Zyes skills installed and callable and can resolve the personal Zyes home; otherwise ignore it and do not auto-initialize.
 <!-- zyes:end -->
 ```
@@ -106,12 +108,16 @@ Use lowercase kebab-case for the project name. Only one corresponding managed bl
 
 ## CONTEXT.md starter
 
-Create `knowledge/CONTEXT.md` with a minimal skeleton so later skills have a place to accumulate domain vocabulary. Write the heading and prose in the language the user is conversing in; keep it short and leave the body empty for later skills to fill in.
+Create `knowledge/CONTEXT.md` with the skeleton below so later skills have a defined place to write into. Write the heading and prose in the language the user is conversing in, and translate the `_No entries yet._` placeholder too.
 
 ```markdown
 # Project domain vocabulary
 
-> Shared terms, concepts, and conventions for this project. Zyes skills read this first and keep it up to date.
+> Shared terms for this project. Only concepts specific to this project's domain — general engineering concepts don't belong here.
+
+## Language
 
 _No entries yet._
 ```
+
+The `## Language` heading is the insertion point and the placeholder line marks the file as still empty. [z-domain](../z-domain/SKILL.md) deletes that line when it writes the first term — do not treat the starter as content that must be preserved.

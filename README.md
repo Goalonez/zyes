@@ -45,6 +45,7 @@ Follow the installer prompt to pick your coding agent and install all skills. No
 | `/z-implement` | Advance the next unchecked step, then wrap up when all are done |
 | `/z-list-tasks` | List active plans with progress and next step |
 | `/z-grilling` | Interrogate any decision, one question at a time (the proven core) |
+| `/z-domain` | Capture long-lived domain vocabulary and architecture decision records |
 
 ## Quick start
 
@@ -146,12 +147,14 @@ Both use the same layout, and `/z-init` creates the whole skeleton up front so i
 │   │       ├── PLAN.md          # the plan document
 │   │       └── artifacts/       # SQL, reports, checklists for this plan
 │   └── done/                    # completed / cancelled plans
-└── knowledge/
-    ├── CONTEXT.md               # reusable domain glossary
-    └── adr/                     # load-bearing architecture decisions
+└── knowledge/                   # filled in by z-domain as work uncovers it
+    ├── CONTEXT.md               # domain glossary
+    └── adr/                     # load-bearing decisions
 ```
 
 **One plan is one directory.** Non-code artifacts produced while executing a plan — DDL scripts, execution-plan reports, manual verification checklists — go into that plan's `artifacts/`, never scattered around your codebase. Wrapping up moves the whole directory to `plans/done/`, so links inside `PLAN.md` keep working.
+
+**Plans are task-scoped; knowledge is long-lived.** `plans/` records why one task looked the way it did, and is archived with it for traceability. `knowledge/` holds the two things that outlive any task: the glossary — the project's shared vocabulary, and nothing else — and ADRs, the load-bearing decisions future work has to respect. Terms are written down the moment they're pinned down during interrogation; an ADR requires all three of hard to reverse, surprising without context, and the result of a real trade-off — miss one and there's no ADR. **Most tasks produce zero ADRs, and that's the intended shape.**
 
 Everything lives in readable, reviewable Markdown.
 
