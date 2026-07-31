@@ -62,7 +62,7 @@ Show in one go: the mode, the final absolute project root, the directory skeleto
 - Create the directory skeleton under the project root: `plans/active/`, `plans/done/`, `knowledge/adr/`, and a `knowledge/CONTEXT.md` starter (see the template below). If any of these already exist, keep them as-is and never overwrite existing content.
 - Add or update the managed block in place; never append a duplicate block. For external mode, also update the global Zyes home managed block.
 - Re-read all written files to confirm correctness.
-- Report the mode, project root, the created directories and `CONTEXT.md`, and the modified description files. For external mode, remind the user to restart the session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
+- Report the mode, project root, the created directories and `CONTEXT.md`, and the modified description files. For external mode, remind the user to open a new session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
 
 ## Managed block templates
 
