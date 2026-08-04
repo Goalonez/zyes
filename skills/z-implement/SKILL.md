@@ -5,9 +5,9 @@ description: Read an existing Zyes plan document, execute it step by step while 
 
 # Execute a plan
 
-Advance the unfinished steps of a plan document in order (continuous by default, see section 3). Before executing, resolve the Zyes project root (read the repo's managed block). The Zyes root is always anchored to the repo of the working directory (cwd) where the agent started; even if the plan touches files in other repos (split front/back end, microservices, etc.), do not re-infer the repo root from that — treat cross-repo files only as referenced external code locations.
+Advance the unfinished steps of a plan document in order (continuous by default, see section 3). Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; files in other repos do not change the Zyes root.
 
-**Do not auto-initialize when no valid config is detected.** Ask the user whether to initialize Zyes; if they agree hand off to `z-init`, if they decline **stop this skill**, handle the request with the agent's own capabilities, and create no Zyes files.
+**If the project root cannot be resolved**, ask the user whether to initialize Zyes; if they agree hand off to `z-init`, otherwise stop this skill, handle the request with the agent's own capabilities, and create no Zyes files.
 
 ## Output language
 

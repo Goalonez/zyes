@@ -7,7 +7,7 @@ description: List the status, progress, and next step of all plan documents in t
 
 Read-only summary of the current project's Zyes plan documents. Do not create, modify, or start executing any plan.
 
-First resolve the Zyes project root (read the repo's managed block), anchored to the repo of the working directory (cwd) where the agent started — do not change the root based on other repo files the user mentions. **When no valid config is detected**, reply directly that Zyes is not enabled for this project (no plan documents), and do not ask whether to initialize or initialize on the user's behalf — the user will run `z-init` explicitly when needed.
+Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; files in other repos do not change the Zyes root. If the root cannot be resolved, state that the project's Zyes plans cannot be located and point the user to `z-init`.
 
 ## Collect
 

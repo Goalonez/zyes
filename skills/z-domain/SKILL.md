@@ -13,9 +13,9 @@ This knowledge outlives any single plan. A plan document records why *this* task
 
 ## Resolving the root and writing into the scaffold
 
-Resolve the Zyes project root the same way as the other skills: read the `<!-- zyes:start -->` managed block in the repo's `AGENTS.md`/`CLAUDE.md`, anchored to the repo of the working directory (cwd) where the agent started. When invoked by another Zyes skill that already resolved the root, reuse it.
+Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; when another Zyes skill already resolved the root, reuse it.
 
-**Do not auto-initialize when no valid config is detected.** Ask the user in one line whether to initialize Zyes; if they decline, **stop this skill** and create no files.
+**If the project root cannot be resolved**, ask the user in one line whether to initialize Zyes; if they decline, stop this skill and create no files.
 
 ```text
 <ZYES_PROJECT_ROOT>/knowledge/

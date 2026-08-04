@@ -7,9 +7,9 @@ description: Investigate the codebase, confirm requirements, and land one multi-
 
 Turn a user request into a confirmed plan document. During planning you may investigate the repo and maintain domain vocabulary, but you do not modify product code.
 
-First resolve the Zyes project root: read the `<!-- zyes:start -->` managed block in the repo's `AGENTS.md`/`CLAUDE.md`. The Zyes root is always anchored to the repo of the working directory (cwd) where the agent started; even if the requirement touches files in other repos (split front/back end, microservices, etc.), do not re-infer the repo root from that — treat cross-repo files only as referenced external code locations.
+Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; files in other repos do not change the Zyes root.
 
-**Do not auto-initialize when no valid config is detected.** Ask the user in one line: initialize Zyes to persist this plan?
+**If the project root cannot be resolved**, ask the user in one line: initialize Zyes to persist this plan?
 
 - User agrees → hand off to `z-init`, then return to this skill.
 - User declines or just wants a quick fix → **stop this skill**, create no Zyes files, and handle the request with the agent's own capabilities.
