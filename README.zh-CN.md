@@ -44,7 +44,7 @@ npx skills@latest add Goalonez/zyes
 | `/z-brainstorm <需求>` | 调查代码库、确认需求、落地规划文档 |
 | `/z-implement` | 推进下一个未完成步骤，全部完成后收尾 |
 | `/z-list-tasks` | 列出进行中的规划、进度和下一步 |
-| `/z-grilling` | 逐题追问、压力测试任何决策（经实战验证的核心） |
+| `/z-grilling` | 按决策依赖分轮追问、压力测试任何决策 |
 | `/z-domain` | 沉淀跨任务的领域词汇与架构决策记录 |
 
 ## 快速开始
@@ -85,7 +85,7 @@ npx skills@latest add Goalonez/zyes
 
 ## 经实战验证的核心：`z-grilling`
 
-`z-grilling` 是一段经过实战检验的逐题追问提示词（源自 [mattpocock/skills](https://github.com/mattpocock/skills)）。它沿决策树一次只问一个问题，每题都给出推荐答案，能自己查的事实绝不反问，达成共同理解前绝不动手。
+`z-grilling` 是一段经过实战检验的追问提示词（源自 [mattpocock/skills](https://github.com/mattpocock/skills)）。它把决策映射为设计树，按轮询问当前 frontier，每题都给出推荐答案，能自己查的事实绝不反问，达成共同理解前绝不动手。
 
 `z-brainstorm` 在规划时复用它，但你也可以单独调用它来压力测试*任何*想法：
 

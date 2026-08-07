@@ -44,7 +44,7 @@ Follow the installer prompt to pick your coding agent and install all skills. No
 | `/z-brainstorm <need>` | Investigate the codebase, confirm requirements, land a plan document |
 | `/z-implement` | Advance the next unchecked step, then wrap up when all are done |
 | `/z-list-tasks` | List active plans with progress and next step |
-| `/z-grilling` | Interrogate any decision, one question at a time (the proven core) |
+| `/z-grilling` | Interrogate decisions in dependency-aware rounds |
 | `/z-domain` | Capture long-lived domain vocabulary and architecture decision records |
 
 ## Quick start
@@ -85,7 +85,7 @@ Lists every active plan with its progress and next step — so a new session, or
 
 ## The proven core: `z-grilling`
 
-`z-grilling` is a battle-tested interrogation prompt (sourced from [mattpocock/skills](https://github.com/mattpocock/skills)). It walks the decision tree one question at a time, always offering a recommended answer, looking up facts itself instead of asking, and never acting until you've reached shared understanding.
+`z-grilling` is a battle-tested interrogation prompt (sourced from [mattpocock/skills](https://github.com/mattpocock/skills)). It maps decisions as a design tree, asks the current frontier in rounds, always offers a recommended answer, looks up facts itself instead of asking, and never acts until you've reached shared understanding.
 
 `z-brainstorm` reuses it during planning, but you can invoke it standalone to pressure-test *any* idea:
 
