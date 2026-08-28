@@ -7,7 +7,7 @@ description: Build and sharpen the project's long-lived domain knowledge — the
 
 Actively build and sharpen the project's long-lived knowledge: the glossary (`knowledge/CONTEXT.md`) and architecture decision records (`knowledge/adr/`). This is the **active** discipline — challenging terms, surfacing contradictions, and writing things down the moment they crystallise.
 
-Merely **reading** `CONTEXT.md` to reuse its vocabulary is not this skill — that's a one-line habit any skill does. This skill is for when you are **changing** the model.
+Reading `CONTEXT.md` to reuse its vocabulary is the shared baseline across skills. This skill begins when you are **changing** the model.
 
 This knowledge outlives any single plan. A plan document records why *this* task looks the way it does and is archived with it; the glossary and ADRs record what *future* work must respect. Keep the two separate — see "Plan decisions vs ADRs" below.
 
@@ -15,25 +15,25 @@ This knowledge outlives any single plan. A plan document records why *this* task
 
 Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; when another Zyes skill already resolved the root, reuse it.
 
-**If the project root cannot be resolved**, ask the user in one line whether to initialize Zyes; if they decline, stop this skill and create no files.
+**If the project root cannot be resolved**, ask the user in one line whether to initialize Zyes; if they decline, stop this skill.
 
 ```text
 <ZYES_PROJECT_ROOT>/knowledge/
 ├── CONTEXT.md          # the glossary
-└── adr/                # NNNN-<slug>.md
+└── adr/                # created on first qualifying ADR: NNNN-<slug>.md
 ```
 
-`z-init` scaffolds both up front, so **expect them to already exist and to be empty**. An empty scaffold is not a signal that nothing belongs here — it only means nothing has been recorded yet. Handle it as follows:
+`z-init` creates only the glossary starter; `adr/` may be absent until the first qualifying ADR. An empty scaffold means the domain model is still blank. Handle it as follows:
 
-- **`CONTEXT.md` holding only the starter** — a placeholder line such as `_No entries yet._`, with or without a `## Language` heading (starters written before this layout omit it): add the heading if it's absent, write the first term under it, and **delete the placeholder line**. Never leave the placeholder stranded above real entries, and never append a second `## Language` heading.
-- **`adr/` empty**: the next ADR is `0001-<slug>.md`.
-- **Either one missing** (a workspace initialized before this layout, or one the user pruned): create it when you have something to write, and never scaffold it empty in advance.
+- **`CONTEXT.md` holding only the starter** — a placeholder line marking the glossary as empty, with or without a `## Language` heading (starters written before this layout omit it): add the heading if it's absent, write the first term under it, delete the placeholder line, and reuse any existing `## Language` heading.
+- **`adr/` missing or empty**: create it only when an ADR qualifies; the next ADR is `0001-<slug>.md`.
+- **Either one missing** (a workspace initialized before this layout, or one the user pruned): create it when you have something to write.
 
-Whatever the starting state, the bar for writing is unchanged — an empty file is never a reason to lower it, and a populated one is never a reason to stop.
+Whatever the starting state, apply the same writing bar to every entry.
 
 ## Output language
 
-Write the glossary and ADRs in the **same language the user is conversing in**. If existing entries or repo docs are clearly in another language, match those instead. Headings in the templates below are labels to translate, not literal strings to copy.
+Write the glossary and ADRs in the **same language the user is conversing in**. If existing entries or repo docs are clearly in another language, match those instead. Translate the template heading labels into the output language.
 
 ## During the session
 
@@ -47,17 +47,17 @@ When the user uses a vague or overloaded term, propose a precise canonical term:
 
 ### Cross-reference with the code
 
-When the user states how something works, check whether the code agrees. If you find a contradiction, surface it rather than silently recording the claim.
+When the user states how something works, check whether the code agrees. If you find a contradiction, surface it before recording the claim.
 
 ### Write terms down inline
 
-The moment a term is resolved, write it into `CONTEXT.md` right there. **Don't batch these up to the end of the task** — by then the wording has drifted and the reason is gone. Use the glossary format below.
+The moment a term is resolved, write it into `CONTEXT.md` right there while the wording and reason are fresh. Use the glossary format below.
 
-`CONTEXT.md` is a glossary and nothing else. It must be totally free of implementation details. Do not treat it as a spec, a scratch pad, or a home for task scope or implementation decisions.
+Use `CONTEXT.md` as a glossary: domain terms, definitions, and boundaries. Keep task scope and implementation decisions in the plan document.
 
 ### Offer ADRs sparingly
 
-An ADR needs a high bar — see "When an ADR qualifies" below. **Most tasks produce zero ADRs, and that is the intended shape.** Don't go looking for one to justify.
+An ADR needs a high bar — see "When an ADR qualifies" below. Apply the tests below; when none qualifies, leave the ADR directory absent or unchanged.
 
 ## Glossary format
 
@@ -71,16 +71,16 @@ _Avoid_: <rejected synonyms>
 
 Rules:
 
-- **Be opinionated.** When several words exist for one concept, pick the best and list the rest under `_Avoid_`. If you can't say what the term is being distinguished *from*, you don't have a glossary entry yet — you have a description. Leave it out.
-- **Keep definitions tight.** One or two sentences. Define what it is, not what it does.
-- **Only terms specific to this project's domain.** General programming concepts (timeouts, retries, error types, utility patterns) don't belong even if the project leans on them heavily. Before adding one, ask: is this unique to this project's business, or a general engineering concept? Only the former belongs.
+- **Be opinionated.** When several words exist for one concept, pick the best and list the rest under `_Avoid_`. A glossary entry needs a clear boundary against neighbouring concepts.
+- **Keep definitions tight.** One or two sentences. Define identity and boundary.
+- **Only terms specific to this project's domain.** Keep general programming concepts (timeouts, retries, error types, utility patterns) out. Before adding one, ask: is this unique to this project's business, or a general engineering concept? Only the former belongs.
 - **Group terms under subheadings** when natural clusters emerge; a flat list is fine otherwise.
 - Add a `## Relationships` section only when terms genuinely constrain each other; skip it otherwise.
-- When an entry is overturned or a term is retired, **rewrite or delete it in place** — never append a competing definition.
+- When an entry is overturned or a term is retired, **rewrite or delete it in place**.
 
 ## ADR format
 
-ADRs live in `<ZYES_PROJECT_ROOT>/knowledge/adr/` with sequential numbering: `0001-<slug>.md`. Scan the directory for the highest existing number and increment by one.
+ADRs live in `<ZYES_PROJECT_ROOT>/knowledge/adr/` with sequential numbering: `0001-<slug>.md`. Create the directory only when writing a qualifying ADR. Scan the directory for the highest existing number and increment by one.
 
 ```markdown
 # <Short title of the decision>
@@ -88,24 +88,24 @@ ADRs live in `<ZYES_PROJECT_ROOT>/knowledge/adr/` with sequential numbering: `00
 <1-3 sentences: the context, what was decided, and why.>
 ```
 
-That's it — an ADR can be a single paragraph. The value is in recording **that** a decision was made and **why**, not in filling out sections. Add `Considered options` only when the rejected alternatives are worth remembering, and `Consequences` only when there are non-obvious downstream effects. Most ADRs need neither.
+That's it — an ADR can be a single paragraph. The value is in recording **that** a decision was made and **why**. Add `Considered options` when rejected alternatives are worth remembering, and `Consequences` when downstream effects are non-obvious.
 
 ### When an ADR qualifies
 
 All three must be true:
 
 1. **Hard to reverse** — the cost of changing your mind later is meaningful.
-2. **Surprising without context** — a future reader will look at the code and wonder "why on earth was it done this way?"
+2. **Needs context** — a future reader needs the recorded reason to understand why the code works this way.
 3. **The result of a real trade-off** — there were genuine alternatives and one was picked for specific reasons.
 
-If any one is missing, there is no ADR. Easy to reverse → you'll just reverse it. Not surprising → nobody will wonder why. No real alternative → there's nothing to record beyond "we did the obvious thing."
+All three must hold. Reversible choices, obvious implementation moves, and choices with a single viable path stay plan-scoped.
 
-What typically qualifies: architectural shape; integration patterns between modules or systems; technology choices carrying real lock-in (not every library — the ones that would take months to swap); ownership and boundary decisions, where the explicit *no*s matter as much as the *yes*es; deliberate deviations from the obvious path, which stop the next engineer from "fixing" something intentional; and constraints invisible in the code (compliance, a partner API's response-time contract).
+What typically qualifies: architectural shape; integration patterns between modules or systems; technology choices carrying real lock-in; ownership and boundary decisions; deliberate deviations from the obvious path; and constraints invisible in the code (compliance, a partner API's response-time contract).
 
 ### Plan decisions vs ADRs
 
-A plan document's "Key Decisions" section already records why that plan looks the way it does, and it is archived together with the plan. Before promoting anything to an ADR, ask:
+A plan document's "Key Rules" section (or legacy "Key Decisions") already records why that plan looks the way it does, and it is archived together with the plan. Before promoting anything to an ADR, ask:
 
 > Six months from now, could someone changing this area need to know why this choice was made?
 
-If no, leave it in the plan document. Do not restate a plan decision as an ADR. The three tests above still apply — this one only separates plan-scoped decisions from ones that outlive the plan.
+When the answer is yes, promote the decision to an ADR. Otherwise keep it plan-scoped. The three tests above still apply — this one only separates plan-scoped decisions from ones that outlive the plan.

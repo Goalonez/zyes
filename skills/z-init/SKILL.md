@@ -5,13 +5,13 @@ description: Initialize the Zyes workflow for the current repo — choose the st
 
 # Set up Zyes
 
-Determine a single Zyes project root for the current repo, write a locator managed block into the project description file, install the shared workflow rules into the user's global description file, and scaffold the storage directory structure. This skill configures the storage location and creates the empty directory skeleton plus a `CONTEXT.md` starter — it does not create any plan documents. Show the full draft and get explicit confirmation from the user before writing anything; when updating an existing file, touch only the managed block and preserve all other content.
+Determine a single Zyes project root for the current repo, write a locator managed block into the project description file, install the shared workflow rules into the user's global description file, and scaffold the storage directory structure. This skill configures the storage location and creates the always-needed directories plus a `CONTEXT.md` starter. Plan documents are created later by `z-brainstorm`. Show the full draft and get explicit confirmation from the user before writing anything; when updating an existing file, touch only the managed block and preserve all other content.
 
-Config lives in two files: the project block carries only the per-repo values, and its presence marks the repo as using Zyes; the global block carries the rules shared by every project, so updating them later never means touching each repo again.
+Config lives in two files: the project block carries only the per-repo values, and its presence marks the repo as using Zyes; the global block carries the rules shared by every project, so later updates happen in one place.
 
 ## Directory layout
 
-The same layout applies in both modes. The init step creates this full skeleton up front — the two `plans/` subdirectories, `knowledge/adr/`, and a `CONTEXT.md` starter — so the workspace is ready to use immediately:
+The same layout applies in both modes. The init step creates only the always-needed skeleton up front — the two `plans/` subdirectories and a `CONTEXT.md` starter — so the workspace is ready to use immediately:
 
 ```text
 <ZYES_PROJECT_ROOT>/
@@ -22,29 +22,28 @@ The same layout applies in both modes. The init step creates this full skeleton 
 │   │       └── artifacts/           # non-code artifacts for this plan (lazily created)
 │   └── done/                        # completed / cancelled plans (whole directories)
 └── knowledge/                       # filled in by z-domain, empty until then
-    ├── CONTEXT.md                   # project glossary (created as a starter skeleton)
-    └── adr/                         # load-bearing decisions: NNNN-slug.md
+    └── CONTEXT.md                   # project glossary (created as a starter skeleton)
 ```
 
-**One plan is one directory.** The plan document is always named `PLAN.md`, and every non-code artifact produced while executing that plan lives in its sibling `artifacts/`. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/adr/` — individual plan directories and their `artifacts/` are created later, on demand.
+**One plan is one directory.** The plan document is always named `PLAN.md`, and every non-code artifact produced while executing that plan lives in its sibling `artifacts/`. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/CONTEXT.md` — individual plan directories, their `artifacts/`, and `knowledge/adr/` are created later, on demand.
 
-The `knowledge/` scaffold is created empty on purpose, so the workspace shows from day one where domain knowledge belongs. [z-domain](../z-domain/SKILL.md) owns its contents and treats the starter as a placeholder to replace, never as existing content.
+The `knowledge/` scaffold is created empty on purpose, so the workspace shows from day one where domain vocabulary belongs. [z-domain](../z-domain/SKILL.md) owns its contents, treats the starter as a placeholder to replace, and creates `knowledge/adr/` only when a decision qualifies as an ADR.
 
 ## Anchoring rule
 
-The Zyes root is **always anchored to the repo of the working directory (cwd) where the agent started**. Even when the user mentions or asks you to read/write files that belong to **another repo** (split front/back end, multi-repo microservices, etc.), **do not** re-infer the repo root from those file paths and do not look for a managed block in that other repo. Cross-repo files are only "referenced external code locations" and do not change the Zyes root. All Zyes skills follow this rule when resolving the root.
+The Zyes root is **always anchored to the repo of the working directory (cwd) where the agent started**. Even when the user mentions or asks you to read/write files that belong to **another repo** (split front/back end, multi-repo microservices, etc.), keep resolving Zyes from the starting repo. Cross-repo files count as referenced external code locations, with the starting repo remaining the Zyes root. All Zyes skills follow this rule when resolving the root.
 
 A project config is usable when its `zyes` block has a `Root` that resolves to a concrete path. Resolve relative values against the repo root; when `Root` contains `<ZYES_HOME>`, substitute the home recorded in `zyes-global`. `Mode` is a readability label; `Root` alone determines the path.
 
 ## 1. Explore
 
-Find the repo root by walking up from the current directory (see anchoring rule above). To locate the root, only check for repo markers such as `.git`; do not read directory contents beyond what this needs. Then read only the specific files this skill requires:
+Find the repo root by walking up from the current directory (see anchoring rule above). To locate the root, only check for repo markers such as `.git`. Then read only the specific files this skill requires:
 
 - `AGENTS.md` and `CLAUDE.md` at the repo root;
 - any existing `<!-- zyes:start -->` managed block in those files;
 - the `<!-- zyes-global:start -->` managed block in the global `AGENTS.md` or `CLAUDE.md` available to the current session.
 
-Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target those exact paths directly (e.g. read `AGENTS.md` / `CLAUDE.md` by name) instead of listing or scanning the whole repo. During initialization you **must not** read unrelated or non-essential artifacts — this explicitly includes `.env` and other environment/secret/credential files, and extends to source code, dependency directories, build output, and anything else not listed above.
+Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target those exact paths directly (e.g. read `AGENTS.md` / `CLAUDE.md` by name) instead of listing or scanning the whole repo. Exclude unrelated artifacts from initialization reads, especially `.env`, credentials, source code, dependency directories, and build output.
 
 Choose the project description file in this order: use `AGENTS.md` if it exists; otherwise use an existing `CLAUDE.md`; if neither exists, ask the user which to create and recommend `AGENTS.md`.
 
@@ -57,16 +56,16 @@ When the existing project block has a resolvable `Root`, prefer keeping its curr
 - `shared`: `Root` is `.zyes`, so the workspace sits alongside the codebase and is reachable by anyone working in the repo.
 - `external`: `Root` is `<ZYES_HOME>/<project-name>` (e.g. a personal Obsidian vault); the repo managed block stays free of a personal absolute path.
 
-For external mode, read the Zyes home from the global `<!-- zyes-global:start -->` block; if absent, ask for the absolute path and write it into that block. The project name defaults to the repo directory name normalized to lowercase kebab-case. When the target directory already exists but cannot be confirmed as belonging to the current repo, show the conflict and let the user choose to reuse or rename — do not overwrite.
+For external mode, read the Zyes home from the global `<!-- zyes-global:start -->` block; if absent, ask for the absolute path and write it into that block. The project name defaults to the repo directory name normalized to lowercase kebab-case. When the target directory already exists but cannot be confirmed as belonging to the current repo, show the conflict and let the user choose to reuse or rename.
 
 ## 3. Show and confirm
 
-Show in one go: the mode, the final absolute project root, the directory skeleton to be created (the `plans/active`, `plans/done`, `knowledge/adr` directories and the `CONTEXT.md` starter), the project managed block to be written, and the global managed block together with the path of the global file it goes into. Then ask the user to confirm writing both files and scaffolding the workspace, and invite them to describe any changes instead — phrase this in the language the user is conversing in. Do not proceed without an explicit confirmation. If the external path is outside the writable scope, request runtime authorization separately.
+Show in one go: the mode, the final absolute project root, the directory skeleton to be created (the `plans/active` and `plans/done` directories plus the `CONTEXT.md` starter), the project managed block to be written, and the global managed block together with the path of the global file it goes into. Then ask the user to confirm writing both files and scaffolding the workspace, and invite them to describe any changes instead — phrase this in the language the user is conversing in. Proceed only after explicit confirmation. If the external path is outside the writable scope, request runtime authorization separately.
 
 ## 4. Write and verify
 
-- Create the directory skeleton under the project root: `plans/active/`, `plans/done/`, `knowledge/adr/`, and a `knowledge/CONTEXT.md` starter (see the template below). If any of these already exist, keep them as-is and never overwrite existing content.
-- Add or update the project managed block in place; never append a duplicate block.
+- Create the directory skeleton under the project root: `plans/active/`, `plans/done/`, and a `knowledge/CONTEXT.md` starter (see the template below). Preserve existing content when a path already exists.
+- Add or update the project managed block in place, with one corresponding block per file.
 - Update the global block in both modes, keeping any home path already recorded there.
 - Re-read all written files to confirm correctness.
 - Report the mode, project root, the created directories and `CONTEXT.md`, and both modified description files. Remind the user to open a new session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
@@ -106,13 +105,13 @@ Goes into the user's global `AGENTS.md` (or `CLAUDE.md`). Keep the home line onl
 
 Zyes external home: `/absolute/path/to/zyes-home`
 
-**This section applies only when the current repo's root `AGENTS.md` or `CLAUDE.md` contains a `<!-- zyes:start -->` block, and only when the current agent has Zyes skills installed and callable.** Otherwise ignore it entirely and never auto-initialize Zyes.
+**This section applies only when the current repo's root `AGENTS.md` or `CLAUDE.md` contains a `<!-- zyes:start -->` block, and only when the current agent has Zyes skills installed and callable.** Otherwise ignore it entirely and leave initialization to explicit user requests.
 
 Resolve `<ZYES_PROJECT_ROOT>` from that block's `Root` value: substitute `<ZYES_HOME>` with the home path above, and resolve a relative path against the repo root.
 
 - Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/PLAN.md`.
-- Non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory, not into the codebase.
-- Before work that touches this project's domain, read the glossary `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` and any ADRs under `<ZYES_PROJECT_ROOT>/knowledge/adr/` relevant to the area you're touching, and reuse the vocabulary defined there.
+- Non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory.
+- Before work that touches this project's domain, read the glossary `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` and any relevant ADRs under `<ZYES_PROJECT_ROOT>/knowledge/adr/` if that directory exists, and reuse the vocabulary defined there.
 <!-- zyes-global:end -->
 ```
 
@@ -120,16 +119,16 @@ Use lowercase kebab-case for the project name. Only one corresponding managed bl
 
 ## CONTEXT.md starter
 
-Create `knowledge/CONTEXT.md` with the skeleton below so later skills have a defined place to write into. Write the heading and prose in the language the user is conversing in, and translate the `_No entries yet._` placeholder too.
+Create `knowledge/CONTEXT.md` with the skeleton below so later skills have a defined place to write into. Write the heading, prose, and placeholder in the language the user is conversing in.
 
 ```markdown
 # Project domain vocabulary
 
-> Shared terms for this project. Only concepts specific to this project's domain — general engineering concepts don't belong here.
+> Shared terms for this project. Keep this file to concepts specific to this project's domain.
 
 ## Language
 
-_No entries yet._
+_To be filled when a domain term is confirmed._
 ```
 
-The `## Language` heading is the insertion point and the placeholder line marks the file as still empty. [z-domain](../z-domain/SKILL.md) deletes that line when it writes the first term — do not treat the starter as content that must be preserved.
+The `## Language` heading is the insertion point and the placeholder line marks the file as still empty. [z-domain](../z-domain/SKILL.md) deletes that line when it writes the first term.
