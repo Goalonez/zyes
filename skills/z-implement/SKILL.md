@@ -19,21 +19,21 @@ Whenever you need today's date — for a progress-log entry, for example — **o
 
 ## 1. Choose a plan document
 
-- Use the plan the user specified (by title or path).
-- When unspecified, list plans under `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start. Each plan is a directory containing `PLAN.md`; older plans may still be a flat `<date-slug>.md` file directly under `plans/active/` — read those in place and leave their layout as-is.
+- Use the plan the user specified (by title or path), otherwise reuse the current unfinished plan. Execute plans with `status` `ready` or `in-progress`; for `planning`, finish requirement confirmation first.
+- When neither is known, list plans under `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start. Each plan is a directory containing `PLAN.md`; older plans may still be a flat `<date-slug>.md` file directly under `plans/active/` — read those in place and leave their layout as-is.
 - Read the full text of the chosen document, plus relevant terms from `knowledge/CONTEXT.md` (if present) and the ADRs relevant to the area you're touching, to keep wording consistent.
 
 ## 2. Execute the current milestone
 
 1. On the first execution, change the document `status` from `ready` to `in-progress`.
 2. In "Implementation Milestones" (or legacy "Execution Steps"), find the **first unchecked** (`- [ ]`) milestone as the current milestone.
-3. Implement only that one milestone. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user.
-4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and non-code artifacts into the current plan's `artifacts/` (see "Where non-code artifacts go" below).
+3. Implement only that one milestone. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user. For the same task, after confirmation update the affected requirements, key rules, acceptance criteria, and milestones in the original plan, and log the change and reason before continuing. Preserve valid completed items and existing logs; uncheck invalidated items and add necessary rework. Split into a new plan only for an independent goal or when the user explicitly asks to split.
+4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and required independent attachments into the current plan's `artifacts/` (see "Required plan attachments" below).
 5. Implement following the "Execution guidelines" below, and use judgment to choose the smallest relevant verification that provides sufficient evidence for the current milestone and its acceptance criteria.
 
-## Where non-code artifacts go
+## Required plan attachments
 
-Execution often produces plan-side artifacts: DDL/SQL scripts, execution-plan and index review reports, manual verification checklists, data reconciliation results, performance measurements, migration runbooks. All of these go into the current plan's own directory:
+Keep analysis and verification conclusions brief in `PLAN.md`. Create a separate file only when it must be used independently (such as SQL the user needs to execute manually) or the user explicitly requests it. Product files, migration scripts, config, and official documentation belong in the code repository following its existing conventions; task-only attachments go in:
 
 ```text
 <ZYES_PROJECT_ROOT>/plans/active/<date-slug>/artifacts/<name>
@@ -41,25 +41,11 @@ Execution often produces plan-side artifacts: DDL/SQL scripts, execution-plan an
 
 Create `artifacts/` lazily, on first use. For a legacy flat plan file (`plans/active/<date-slug>.md`), create the sibling directory `plans/active/<date-slug>/artifacts/` and use that.
 
-Deciding where a file belongs:
+Manual steps cover only actions the user must perform: necessary prerequisites, actions, expected results, and relevant cautions. Keep concise steps directly in `PLAN.md`; use an attachment only under the rule above. Keep `*.sql` executable, with minimal comments and placeholders.
 
-- Consumed by the product build, release process, or version control (Flyway/Liquibase migration scripts, real config, official documentation) → put it in the code repository following that repo's existing conventions.
-- Only meant to be read by a human, executed once by hand, or kept for audit → `artifacts/`.
-- When unsure, choose `artifacts/` and say so when you report.
+Name attachments in short kebab-case; when one evolves, **update it in place**.
 
-Choose the artifact type before writing:
-
-- `*.sql`: executable SQL only, with minimal comments and placeholders.
-- `*-checklist.md`: manual verification checklist.
-- `*-runbook.md`: operational steps.
-- `*-report.md`: analysis or audit result.
-- `*.md`: fallback for artifacts outside the typed suffixes above.
-
-For SQL artifacts, put the copyable SQL first. Explanations, placeholder notes, and manual cautions go after the SQL, or into a separate `*-runbook.md` when they become long.
-
-Keep analysis reports, SQL drafts, acceptance checklists, benchmark output, and similar plan artifacts in `artifacts/`. Delete throwaway verification scripts once used, keeping only the conclusion and any output worth retaining in `artifacts/`. Name artifacts in short kebab-case; the plan directory already carries the date. When an artifact evolves, **update it in place**.
-
-Every time you write or meaningfully revise an artifact, register it in the plan document's "Artifacts" section as a relative link plus a one-line description of its type and purpose. Relative links stay valid after wrap-up because the whole plan directory moves together. If the plan document lacks an "Artifacts" section, add it above "Progress Log", using the document's own language.
+Register each attachment in the plan document's "Artifacts" section as a relative link and a one-line purpose; update the entry when the attachment changes. Add this section above "Progress Log" only with the first attachment, using the document's language. Moving the whole plan directory at wrap-up preserves the links.
 
 ## Execution guidelines
 
@@ -71,7 +57,7 @@ After completing an implementation milestone, in the document:
 
 - Check the corresponding milestone as `- [x]`.
 - Check any satisfied acceptance criteria as `- [x]`.
-- Register any artifact written or revised during this milestone in "Artifacts" (see "Where non-code artifacts go").
+- Register any attachment written or revised during this milestone in "Artifacts" (see "Required plan attachments").
 - Append one line to "Progress Log": `YYYY-MM-DD (session/agent): completed milestone; verification actually run and result; recommended next milestone`. If the section still contains only a `pending` placeholder (or legacy `none`), replace it with the first real log line. Note the reason for any skipped verification. Obtain the date by running a command as described in "Getting the current date".
 
 The progress log is a compact task history. Write one line when a milestone completes, a blocker appears, or the user confirms a requirement change.
@@ -80,7 +66,8 @@ The progress log is a compact task history. Write one line when a milestone comp
 
 - a milestone is ambiguous, conflicts with the plan, or requires expanding scope;
 - a high-risk / irreversible operation touching a safety boundary is needed (deleting files, dependency changes, dangerous Git, database writes, real external side effects, etc.);
-- verification fails and needs a user decision after diagnosis attempts.
+- verification fails and needs a user decision after diagnosis attempts;
+- completion depends on a required user action or result; log the pending action and keep dependent items unchecked until its result is confirmed.
 
 **Step mode**: when the user says "step by step / single step / step", switch to reporting after each completed milestone and waiting for confirmation before continuing.
 

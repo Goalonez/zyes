@@ -19,13 +19,13 @@ The same layout applies in both modes. The init step creates only the always-nee
 │   ├── active/                      # in-progress plans, one directory per plan
 │   │   └── YYYY-MM-DD-<slug>/       # created by z-brainstorm
 │   │       ├── PLAN.md              # the plan document itself
-│   │       └── artifacts/           # non-code artifacts for this plan (lazily created)
+│   │       └── artifacts/           # optional independent attachments (created when needed)
 │   └── done/                        # completed / cancelled plans (whole directories)
 └── knowledge/                       # filled in by z-domain, empty until then
     └── CONTEXT.md                   # project glossary (created as a starter skeleton)
 ```
 
-**One plan is one directory.** The plan document is always named `PLAN.md`, and every non-code artifact produced while executing that plan lives in its sibling `artifacts/`. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/CONTEXT.md` — individual plan directories, their `artifacts/`, and `knowledge/adr/` are created later, on demand.
+**One plan is one directory.** The plan document is always named `PLAN.md`. Keep concise task conclusions and necessary manual steps in it; create `artifacts/` only for files that must be used independently or are explicitly requested by the user. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/CONTEXT.md` — individual plan directories, their `artifacts/`, and `knowledge/adr/` are created later, on demand.
 
 The `knowledge/` scaffold is created empty on purpose, so the workspace shows from day one where domain vocabulary belongs. [z-domain](../z-domain/SKILL.md) owns its contents, treats the starter as a placeholder to replace, and creates `knowledge/adr/` only when a decision qualifies as an ADR.
 
@@ -39,15 +39,15 @@ A project config is usable when its `zyes` block has a `Root` that resolves to a
 
 Find the repo root by walking up from the current directory (see anchoring rule above). To locate the root, only check for repo markers such as `.git`. Then read only the specific files this skill requires:
 
-- `AGENTS.md` and `CLAUDE.md` at the repo root;
-- any existing `<!-- zyes:start -->` managed block in those files;
-- the `<!-- zyes-global:start -->` managed block in the global `AGENTS.md` or `CLAUDE.md` available to the current session.
+- `AGENTS.md` at the repo root;
+- any existing `<!-- zyes:start -->` managed block in that file;
+- the `<!-- zyes-global:start -->` managed block in the global `AGENTS.md` available to the current session.
 
-Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target those exact paths directly (e.g. read `AGENTS.md` / `CLAUDE.md` by name) instead of listing or scanning the whole repo. Exclude unrelated artifacts from initialization reads, especially `.env`, credentials, source code, dependency directories, and build output.
+Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target `AGENTS.md` directly instead of listing or scanning the whole repo. Exclude unrelated artifacts from initialization reads, especially `.env`, credentials, source code, dependency directories, and build output.
 
-Choose the project description file in this order: use `AGENTS.md` if it exists; otherwise use an existing `CLAUDE.md`; if neither exists, ask the user which to create and recommend `AGENTS.md`.
+Use the repo root's `AGENTS.md` for project config; if absent, include its creation in the draft for confirmation.
 
-For the global description file, reuse the file containing `zyes-global`; otherwise prefer the current agent's global `AGENTS.md`, then `CLAUDE.md`. If the target is unclear, ask the user.
+Use the current agent's global `AGENTS.md` for shared rules, reusing its `zyes-global` block when present. If the target path is unclear, ask the user.
 
 ## 2. Choose a mode
 
@@ -83,7 +83,7 @@ Both modes share this shape; only the two values differ.
 - Mode: `shared`
 - Root: `.zyes`
 
-Zyes is enabled for this repo. The workflow rules live in the `zyes-global` block of the user's global `AGENTS.md` (or `CLAUDE.md`).
+Zyes is enabled for this repo. The workflow rules live in the `zyes-global` block of the user's global `AGENTS.md`.
 Only use this section when the current agent has Zyes skills installed and callable; otherwise ignore it and follow the project's existing workflow.
 <!-- zyes:end -->
 ```
@@ -97,7 +97,7 @@ For external mode the only difference is:
 
 ### Global block
 
-Goes into the user's global `AGENTS.md` (or `CLAUDE.md`). Keep the home line only when a Zyes home path is known.
+Goes into the user's global `AGENTS.md`. Keep the home line only when a Zyes home path is known.
 
 ```markdown
 <!-- zyes-global:start -->
@@ -105,12 +105,12 @@ Goes into the user's global `AGENTS.md` (or `CLAUDE.md`). Keep the home line onl
 
 Zyes external home: `/absolute/path/to/zyes-home`
 
-**This section applies only when the current repo's root `AGENTS.md` or `CLAUDE.md` contains a `<!-- zyes:start -->` block, and only when the current agent has Zyes skills installed and callable.** Otherwise ignore it entirely and leave initialization to explicit user requests.
+**This section applies only when the current repo's root `AGENTS.md` contains a `<!-- zyes:start -->` block, and only when the current agent has Zyes skills installed and callable.** Otherwise ignore it entirely and leave initialization to explicit user requests.
 
 Resolve `<ZYES_PROJECT_ROOT>` from that block's `Root` value: substitute `<ZYES_HOME>` with the home path above, and resolve a relative path against the repo root.
 
-- Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/PLAN.md`.
-- Non-code artifacts produced for a plan (SQL scripts, review reports, manual checklists) go in that plan's `artifacts/` directory.
+- Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/PLAN.md`. For the same unfinished task, revise the current plan after confirmation; split only for an independent goal or an explicit user request.
+- Keep conclusions and concise necessary manual steps in `PLAN.md`. Create `artifacts/` only for task files that must be used independently (such as manual SQL) or are explicitly requested by the user.
 - Before work that touches this project's domain, read the glossary `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` and any relevant ADRs under `<ZYES_PROJECT_ROOT>/knowledge/adr/` if that directory exists, and reuse the vocabulary defined there.
 <!-- zyes-global:end -->
 ```
