@@ -19,13 +19,13 @@ The same layout applies in both modes. The init step creates only the always-nee
 │   ├── active/                      # in-progress plans, one directory per plan
 │   │   └── YYYY-MM-DD-<slug>/       # created by z-brainstorm
 │   │       ├── PLAN.md              # the plan document itself
-│   │       └── artifacts/           # optional independent attachments (created when needed)
+│   │       └── artifacts/           # optional Markdown materials for manual actions
 │   └── done/                        # completed / cancelled plans (whole directories)
 └── knowledge/                       # filled in by z-domain, empty until then
     └── CONTEXT.md                   # project glossary (created as a starter skeleton)
 ```
 
-**One plan is one directory.** The plan document is always named `PLAN.md`. Keep concise task conclusions and necessary manual steps in it; create `artifacts/` only for files that must be used independently or are explicitly requested by the user. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/CONTEXT.md` — individual plan directories, their `artifacts/`, and `knowledge/adr/` are created later, on demand.
+**One plan is one directory.** The plan document is always named `PLAN.md`. Keep concise task conclusions and necessary manual steps in it; create `artifacts/` only when necessary materials for user-performed actions need a separate Markdown document. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/CONTEXT.md` — individual plan directories, their `artifacts/`, and `knowledge/adr/` are created later, on demand.
 
 The `knowledge/` scaffold is created empty on purpose, so the workspace shows from day one where domain vocabulary belongs. [z-domain](../z-domain/SKILL.md) owns its contents, treats the starter as a placeholder to replace, and creates `knowledge/adr/` only when a decision qualifies as an ADR.
 
@@ -110,7 +110,7 @@ Zyes external home: `/absolute/path/to/zyes-home`
 Resolve `<ZYES_PROJECT_ROOT>` from that block's `Root` value: substitute `<ZYES_HOME>` with the home path above, and resolve a relative path against the repo root.
 
 - Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/PLAN.md`. For the same unfinished task, revise the current plan after confirmation; split only for an independent goal or an explicit user request.
-- Keep conclusions and concise necessary manual steps in `PLAN.md`. Create `artifacts/` only for task files that must be used independently (such as manual SQL) or are explicitly requested by the user.
+- Keep task records concise in `PLAN.md`, and generate additional task materials only when the user needs to use them. Use `artifacts/` only for necessary manual-action materials that need a separate Markdown document, such as SQL to execute manually; put SQL in fenced code blocks.
 - Before work that touches this project's domain, read the glossary `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` and any relevant ADRs under `<ZYES_PROJECT_ROOT>/knowledge/adr/` if that directory exists, and reuse the vocabulary defined there.
 <!-- zyes-global:end -->
 ```

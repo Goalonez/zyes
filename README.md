@@ -73,7 +73,7 @@ Pick a storage mode (`shared` or `external`); Zyes shows the full plan and waits
 /z-implement execute this plan
 ```
 
-By default `z-implement` **runs through all remaining implementation milestones continuously**, checking the box and appending a progress-log line after each milestone. It pauses for ambiguity, plan conflicts, high-risk/irreversible operations, or failed verification (say "step mode" if you want per-milestone confirmation). Once a change is confirmed, it updates the original plan and any affected completion state before continuing. Verification conclusions and concise necessary manual steps stay in `PLAN.md`; separate task files go in `artifacts/` only when they must be used independently or you explicitly request them. When every milestone is done and acceptance is met, it wraps up after your confirmation: sets `status: done` and moves the whole plan directory to `plans/done/`.
+By default `z-implement` **runs through all remaining implementation milestones continuously**, checking the box and appending a progress-log line after each milestone. It pauses for ambiguity, plan conflicts, high-risk/irreversible operations, or failed verification (say "step mode" if you want per-milestone confirmation). Once a change is confirmed, it updates the original plan and any affected completion state before continuing. Verification results and brief necessary manual steps stay in `PLAN.md`. Additional task materials are generated only when you need to use them; `artifacts/` holds only necessary manual-action materials that need a separate Markdown document. When every milestone is done and acceptance is met, it wraps up after your confirmation: sets `status: done` and moves the whole plan directory to `plans/done/`.
 
 ### 4. Pick up anywhere
 
@@ -128,7 +128,7 @@ Users want a dark mode setting they can change directly from the settings page, 
 - 2026-07-27 (session A): Completed milestone 1; verified toggle flips theme live. Next: persistence.
 ```
 
-Checkboxes carry milestone and acceptance state. The progress log records milestone completion, verification, blockers, and confirmed requirement changes. Confirmed changes also update the plan body so it remains the current execution reference. An optional "Artifacts" section is added only with the first independent attachment.
+Checkboxes carry milestone and acceptance state. The progress log records milestone completion, verification, blockers, and confirmed requirement changes. Confirmed changes also update the plan body so it remains the current execution reference. An optional "Artifacts" section is added only with the first Markdown attachment for a necessary manual action.
 
 ## Where plans are stored
 
@@ -147,13 +147,13 @@ Both use the same layout, and `/z-init` creates the always-needed skeleton up fr
 │   ├── active/                  # one directory per in-progress plan
 │   │   └── YYYY-MM-DD-slug/
 │   │       ├── PLAN.md          # the plan document
-│   │       └── artifacts/       # optional independent attachments, created when needed
+│   │       └── artifacts/       # optional Markdown materials for manual actions
 │   └── done/                    # completed / cancelled plans
 └── knowledge/                   # filled in by z-domain as work uncovers it
     └── CONTEXT.md               # domain glossary
 ```
 
-**One plan is one directory.** `PLAN.md` holds what execution and resumption need. `artifacts/` is optional: create it only for independently used files, such as SQL you must execute manually, or explicitly requested task files. Necessary manual steps stay concise: prerequisites, actions, expected results, and relevant cautions. Wrapping up moves the whole directory to `plans/done/`, so links inside `PLAN.md` keep working.
+**One plan is one directory.** `PLAN.md` holds only what execution and resumption need. `artifacts/` is optional: create it only when necessary materials for actions you must perform, such as SQL to execute manually, need a separate Markdown document. Keep instructions concise and put SQL in fenced code blocks. Brief manual steps stay in `PLAN.md`. Wrapping up moves the whole directory to `plans/done/`, so links inside `PLAN.md` keep working.
 
 **Plans are task-scoped; knowledge is long-lived.** `plans/` records the requirement, key rules, milestones, progress, and verification for one task. `knowledge/` holds the things future work has to respect: the project's shared vocabulary and load-bearing ADRs. Terms are written down the moment they're pinned down during interrogation; `knowledge/adr/` is created only when a decision qualifies. ADR-worthy decisions are hard to reverse, context-dependent for future readers, and the result of a real trade-off.
 

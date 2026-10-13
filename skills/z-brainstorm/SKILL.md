@@ -44,7 +44,7 @@ For a new plan, after confirmation create one directory and write the plan docum
 <ZYES_PROJECT_ROOT>/plans/active/YYYY-MM-DD-<slug>/PLAN.md
 ```
 
-`slug` is the title normalized to lowercase kebab-case; the date is today's, obtained as described in "Getting the current date" above. For a new plan, create only `PLAN.md`; `z-implement` adds `artifacts/` and the "Artifacts" section only when an independent attachment is needed. If a directory of the same name already exists, let the user choose to continue that plan or pick another name. Use the fixed structure below (translate the headings into the output language):
+`slug` is the title normalized to lowercase kebab-case; the date is today's, obtained as described in "Getting the current date" above. For a new plan, create only `PLAN.md`; `z-implement` adds `artifacts/` and the "Artifacts" section only when necessary materials for user-performed actions need a separate Markdown document. If a directory of the same name already exists, let the user choose to continue that plan or pick another name. Use the fixed structure below (translate the headings into the output language):
 
 ```markdown
 ---

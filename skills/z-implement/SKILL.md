@@ -28,20 +28,22 @@ Whenever you need today's date — for a progress-log entry, for example — **o
 1. On the first execution, change the document `status` from `ready` to `in-progress`.
 2. In "Implementation Milestones" (or legacy "Execution Steps"), find the **first unchecked** (`- [ ]`) milestone as the current milestone.
 3. Implement only that one milestone. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user. For the same task, after confirmation update the affected requirements, key rules, acceptance criteria, and milestones in the original plan, and log the change and reason before continuing. Preserve valid completed items and existing logs; uncheck invalidated items and add necessary rework. Split into a new plan only for an independent goal or when the user explicitly asks to split.
-4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and required independent attachments into the current plan's `artifacts/` (see "Required plan attachments" below).
+4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and necessary manual-action materials into the current plan's `artifacts/` (see "Required plan attachments" below).
 5. Implement following the "Execution guidelines" below, and use judgment to choose the smallest relevant verification that provides sufficient evidence for the current milestone and its acceptance criteria.
 
 ## Required plan attachments
 
-Keep analysis and verification conclusions brief in `PLAN.md`. Create a separate file only when it must be used independently (such as SQL the user needs to execute manually) or the user explicitly requests it. Product files, migration scripts, config, and official documentation belong in the code repository following its existing conventions; task-only attachments go in:
+Use `PLAN.md` as the primary task record. Keep only the conclusions, progress, and blockers needed to continue execution, and record verification results briefly in the progress log. Generate additional task materials only when the user needs to use them.
+
+`artifacts/` holds only necessary materials for actions the user must perform, such as SQL to execute manually. Keep brief manual steps in `PLAN.md`; create a separate Markdown document only when the material needs its own file:
 
 ```text
-<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/artifacts/<name>
+<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/artifacts/<name>.md
 ```
 
 Create `artifacts/` lazily, on first use. For a legacy flat plan file (`plans/active/<date-slug>.md`), create the sibling directory `plans/active/<date-slug>/artifacts/` and use that.
 
-Manual steps cover only actions the user must perform: necessary prerequisites, actions, expected results, and relevant cautions. Keep concise steps directly in `PLAN.md`; use an attachment only under the rule above. Keep `*.sql` executable, with minimal comments and placeholders.
+Write only the concise instructions needed to perform the action: necessary prerequisites, actions, expected results, and relevant cautions. Put SQL and commands in fenced code blocks. Product files, migration scripts, config, and official documentation belong in the code repository following its existing conventions.
 
 Name attachments in short kebab-case; when one evolves, **update it in place**.
 
