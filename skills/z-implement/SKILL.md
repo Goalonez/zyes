@@ -1,86 +1,93 @@
 ---
 name: z-implement
-description: Read an existing Zyes plan document, execute it milestone by milestone while logging progress, and wrap up when everything is done.
+description: 读取已有 Zyes 计划文档，逐个里程碑执行并记录进度，全部完成后收尾。
+disable-model-invocation: true
 ---
 
-# Execute a plan
+# 执行计划
 
-Advance the unfinished implementation milestones of a plan document in order (continuous by default, see section 3). Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; cross-repo paths are external code references, with the starting repo remaining the Zyes root.
+按顺序推进计划中未完成的实施里程碑，默认连续执行（见第 3 节）。从仓库的 `<!-- zyes:start -->` 块解析 `<ZYES_PROJECT_ROOT>`：相对 `Root` 按仓库根目录解析，`<ZYES_HOME>` 从全局 `<!-- zyes-global:start -->` 块替换。始终以 agent 启动时工作目录（cwd）所属的仓库为锚点；跨仓库路径作为外部代码引用，Zyes 根目录仍归属起始仓库。
 
-**If the project root cannot be resolved**, ask the user whether to initialize Zyes; if they agree hand off to `z-init`, otherwise return to ordinary agent handling.
+**无法解析项目根目录时**，询问用户是否初始化 Zyes；同意则转交 `z-init`，否则按普通任务处理。
 
-## Output language
+## 输出语言
 
-Match the language of the plan document being executed: write progress-log entries, appended notes, and any new headings in that document's language. When reporting to the user in chat, follow the language the user is conversing in.
+进度日志、补充说明和新增标题沿用当前计划的语言。向用户汇报时，使用用户当前对话的语言。
 
-## Getting the current date
+## 获取当前日期
 
-Whenever you need today's date — for a progress-log entry, for example — **obtain it by actually running a command** (`date +%F` on macOS/Linux, `Get-Date -Format yyyy-MM-dd` in Windows PowerShell). Use command output as the source of truth because conversation dates and prior log dates are often stale. Re-obtain the date before each write.
+需要今天的日期时，例如记录进度日志，**实际执行命令获取**：macOS/Linux 使用 `date +%F`，Windows PowerShell 使用 `Get-Date -Format yyyy-MM-dd`。对话和旧日志中的日期可能过期，以命令输出为准。每次写入前重新获取日期。
 
-## 1. Choose a plan document
+## 1. 选择计划
 
-- Use the plan the user specified (by title or path), otherwise reuse the current unfinished plan. Execute plans with `status` `ready` or `in-progress`; for `planning`, finish requirement confirmation first.
-- When neither is known, list plans under `<ZYES_PROJECT_ROOT>/plans/active/` whose `status` is `ready` or `in-progress` and let the user choose; if there's only one, confirm and start. Each plan is a directory containing `PLAN.md`; older plans may still be a flat `<date-slug>.md` file directly under `plans/active/` — read those in place and leave their layout as-is.
-- Read the full text of the chosen document, plus relevant terms from `knowledge/CONTEXT.md` (if present) and the ADRs relevant to the area you're touching, to keep wording consistent.
+- 优先使用用户按标题或路径指定的计划，否则沿用当前未完成计划。执行 `status` 为 `ready` 或 `in-progress` 的计划；`planning` 状态先完成需求确认。
+- 两者均不明确时，列出 `<ZYES_PROJECT_ROOT>/plans/active/` 下状态为 `ready` 或 `in-progress` 的计划供用户选择；仅有一份时，确认后开始。每份计划位于独立目录的 `PLAN.md` 中；旧版可能是直接放在 `plans/active/` 下的 `<date-slug>.md`，按原位置读取并保留布局。
+- 阅读所选计划全文、`knowledge/CONTEXT.md` 中的相关术语（如存在），以及涉及领域的 ADR，保持用词一致。
 
-## 2. Execute the current milestone
+## 2. 执行当前里程碑
 
-1. On the first execution, change the document `status` from `ready` to `in-progress`.
-2. In "Implementation Milestones" (or legacy "Execution Steps"), find the **first unchecked** (`- [ ]`) milestone as the current milestone.
-3. Implement only that one milestone. When you hit ambiguity, a conflict with the plan, or scope creep, **stop** and clarify with the user. For the same task, after confirmation update the affected requirements, key rules, acceptance criteria, and milestones in the original plan, and log the change and reason before continuing. Preserve valid completed items and existing logs; uncheck invalidated items and add necessary rework. Split into a new plan only for an independent goal or when the user explicitly asks to split.
-4. Only touch product code, tests, config, and docs covered by the approved plan; write plan and domain documents under `<ZYES_PROJECT_ROOT>`, and necessary manual-action materials into the current plan's `artifacts/` (see "Required plan attachments" below).
-5. Implement following the "Execution guidelines" below, and use judgment to choose the smallest relevant verification that provides sufficient evidence for the current milestone and its acceptance criteria.
+1. 首次执行时，将文档 `status` 从 `ready` 改为 `in-progress`。
+2. 在“实施里程碑”（`Implementation Milestones`，旧版为“执行步骤” / `Execution Steps`）中，找到**第一个未勾选项**（`- [ ]`）作为当前里程碑。
+3. 只实施当前里程碑。遇到歧义、计划冲突或范围扩大时，**暂停**并向用户澄清。同一任务的变更经确认后，在原计划中更新受影响的需求、关键规则、验收条件和里程碑，记录变更及原因后继续。保留有效完成项和已有日志，将失效项取消勾选，并补充必要返工。仅在目标独立或用户明确要求拆分时另建计划。
+4. 仅修改已确认计划覆盖的产品代码、测试、配置和文档。计划与领域文档写入 `<ZYES_PROJECT_ROOT>`，必要的人工操作材料写入当前计划的 `artifacts/`，见下文“必要计划附件”。
+5. 按下文“实施原则”执行，自行选择能够为当前里程碑及其验收条件提供充分证据的最小相关验证。
 
-## Required plan attachments
+## 必要计划附件
 
-Use `PLAN.md` as the primary task record. Keep only the conclusions, progress, and blockers needed to continue execution, and record verification results briefly in the progress log. Generate additional task materials only when the user needs to use them.
+以 `PLAN.md` 为主要任务记录，只保留继续执行所需的结论、进度和阻塞，在进度日志中简记验证结果。仅在用户需要实际使用时生成额外材料。
 
-`artifacts/` holds only necessary materials for actions the user must perform, such as SQL to execute manually. Keep brief manual steps in `PLAN.md`; create a separate Markdown document only when the material needs its own file:
+`artifacts/` 用于用户必须执行的操作材料，如需要手动执行的 SQL。简短人工步骤直接写入 `PLAN.md`；材料需要独立成文时，再创建 Markdown 文件：
 
 ```text
 <ZYES_PROJECT_ROOT>/plans/active/<date-slug>/artifacts/<name>.md
 ```
 
-Create `artifacts/` lazily, on first use. For a legacy flat plan file (`plans/active/<date-slug>.md`), create the sibling directory `plans/active/<date-slug>/artifacts/` and use that.
+首次使用时再创建 `artifacts/`。旧版平铺计划（`plans/active/<date-slug>.md`）使用同级目录 `plans/active/<date-slug>/artifacts/`。
 
-Write only the concise instructions needed to perform the action: necessary prerequisites, actions, expected results, and relevant cautions. Put SQL and commands in fenced code blocks. Product files, migration scripts, config, and official documentation belong in the code repository following its existing conventions.
+附件只写执行所需的前提、操作、预期结果和注意事项。SQL 与命令放在代码块中。产品文件、迁移脚本、配置和正式文档按现有惯例放在代码仓库。
 
-Name attachments in short kebab-case; when one evolves, **update it in place**.
+附件采用简短 kebab-case 命名，内容变化时**原处更新**。
 
-Register each attachment in the plan document's "Artifacts" section as a relative link and a one-line purpose; update the entry when the attachment changes. Add this section above "Progress Log" only with the first attachment, using the document's language. Moving the whole plan directory at wrap-up preserves the links.
+每份附件都在计划的“附件”（`Artifacts`）章节登记相对链接和一句用途说明，内容变化时同步更新。首次出现附件时，再按文档语言将该章节添加到“进度日志”（`Progress Log`）之前。收尾时整体移动计划目录，保留相对链接。
 
-## Execution guidelines
+## 实施原则
 
-Code implementation must follow the principle of minimal implementation: prioritize reusing existing code and the project's existing style, solve the explicitly requested requirement, keep the scope tight, and keep logic in a single function or method when that remains clear.
+遵循最小实现原则，优先复用现有代码和项目惯例；逻辑在单个函数或方法内仍清晰时，保持在原处。新增抽象、防御逻辑或兼容处理应有当前需求或具体风险作为依据。在实际输入边界和业务规则处校验，复用已有校验机制与明确契约。根据改动范围和风险选择充分的验证，复用仍然有效的结果，证据足够后停止。
 
-## 3. Log progress
+## 3. 记录进度
 
-After completing an implementation milestone, in the document:
+每完成一个实施里程碑，在文档中：
 
-- Check the corresponding milestone as `- [x]`.
-- Check any satisfied acceptance criteria as `- [x]`.
-- Register any attachment written or revised during this milestone in "Artifacts" (see "Required plan attachments").
-- Append one line to "Progress Log": `YYYY-MM-DD (session/agent): completed milestone; verification actually run and result; recommended next milestone`. If the section still contains only a `pending` placeholder (or legacy `none`), replace it with the first real log line. Note the reason for any skipped verification. Obtain the date by running a command as described in "Getting the current date".
+- 将对应里程碑勾选为 `- [x]`。
+- 将已满足的验收条件勾选为 `- [x]`。
+- 在“附件”章节登记本里程碑新增或修订的附件，见“必要计划附件”。
+- 在“进度日志”追加一行：`YYYY-MM-DD（会话/agent）：完成的里程碑；实际执行的验证及结果；建议的下一里程碑`。若只有“待开始”占位行（旧版为 `pending` 或 `none`），用首条真实日志替换。跳过验证时说明原因。日期按“获取当前日期”一节执行命令取得。
 
-The progress log is a compact task history. Write one line when a milestone completes, a blocker appears, or the user confirms a requirement change.
+进度日志保持简短，在里程碑完成、出现阻塞或用户确认需求变更时记录一行。
 
-**Continuous by default**: for plans with `status` `ready` or `in-progress`, decisions already converged in the brainstorm stage, so execution **advances through all remaining milestones continuously** — checking the box and appending a progress-log line after each milestone. Stop to clarify with the user when:
+**默认连续执行**：`ready` 或 `in-progress` 计划的决策已在规划阶段收敛，因此**连续推进所有剩余里程碑**，每完成一个就勾选并追加进度日志。以下情况暂停澄清：
 
-- a milestone is ambiguous, conflicts with the plan, or requires expanding scope;
-- a high-risk / irreversible operation touching a safety boundary is needed (deleting files, dependency changes, dangerous Git, database writes, real external side effects, etc.);
-- verification fails and needs a user decision after diagnosis attempts;
-- completion depends on a required user action or result; log the pending action and keep dependent items unchecked until its result is confirmed.
+- 里程碑有歧义、与计划冲突或需要扩大范围；
+- 需要执行涉及安全边界的高风险或不可逆操作，如删除文件、依赖变更、危险 Git 操作、数据库写入、真实外部副作用等；
+- 验证失败，经排查后仍需要用户决策；
+- 后续完成依赖用户操作或其结果；记录待办，在结果确认前保留相关项目为未完成。
 
-**Step mode**: when the user says "step by step / single step / step", switch to reporting after each completed milestone and waiting for confirmation before continuing.
+**单步模式**：用户要求“逐步执行 / 单步执行 / step by step / single step / step”时，每完成一个里程碑就汇报，等待确认后继续。
 
-## 4. Wrap up (when everything is done)
+## 4. 审查改动
 
-When **all implementation milestones are `[x]` and all acceptance criteria are satisfied**, this skill wraps up naturally:
+全部实现里程碑完成后，调用 [z-code-review](../z-code-review/SKILL.md) 审查本任务累计 diff，提供明确的改动范围和已有验证结果，区分本任务与已有改动。
 
-1. Report to the user: all milestones done, acceptance met, about to wrap up.
-2. After the user confirms, change `status` to `done` and move **the whole plan directory** — `PLAN.md` together with `artifacts/` — from `plans/active/` to `plans/done/`. Move the directory as a unit so the relative links inside `PLAN.md` keep resolving.
-3. If execution pinned down or overturned a domain term, or forced a decision that constrains future work beyond this plan, hand off to [z-domain](../z-domain/SKILL.md). Apply the ADR/glossary bar from that skill.
+由本 skill 修复本次范围内确认的问题，补充相关验证，并复查修复涉及的部分；需要变更范围或用户决策时，按上述暂停规则处理。影响验收的未解决问题保留对应里程碑和验收项为未完成。将审查结论记入现有进度日志。
 
-**Cancel**: when the user explicitly abandons this plan, change `status` to `cancelled`, append the reason to the progress log, move the whole plan directory to `plans/done/`, and keep existing content for traceability.
+## 5. 收尾
 
-Wrap-up changes the document's status and location. Git commits and pushes remain explicit user actions.
+全部实现里程碑为 `[x]`、验收条件满足且代码审查完成后，进入收尾：
+
+1. 向用户汇报里程碑全部完成、验收满足，准备收尾。
+2. 用户确认后，将 `status` 改为 `done`，把**整个计划目录**（包含 `PLAN.md` 和 `artifacts/`）从 `plans/active/` 移到 `plans/done/`。整体移动，保持 `PLAN.md` 中的相对链接有效。
+3. 实施过程中明确或推翻了领域术语，或形成约束未来任务的决策时，转交 [z-domain](../z-domain/SKILL.md)，按其术语表与 ADR 标准处理。
+
+**取消**：用户明确放弃计划时，将 `status` 改为 `cancelled`，在进度日志记录原因，将整个计划目录移入 `plans/done/`，保留已有内容以便追溯。
+
+收尾修改文档状态和位置。Git 提交与推送仍由用户明确要求后执行。

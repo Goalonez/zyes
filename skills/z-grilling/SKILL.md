@@ -1,22 +1,24 @@
 ---
 name: z-grilling
-description: Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.
+description: 围绕计划、决策或想法持续深入追问。用户希望检验思路，或使用 grill 等触发词时使用。
 ---
 
-Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
+# 深入追问
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
+持续深入追问用户，直到达成共同理解。将讨论梳理为一棵**设计树**：每个决策都会引出依赖它的后续决策。
 
-Each question should be formatted like so:
+按**轮次**推进。**当前可决策问题**指前置条件均已明确、现在可以讨论的问题，无需猜测尚未得到的答案。每轮一次列出这些问题，逐一编号并给出推荐答案，然后等待用户回答，再进入下一轮。
+
+每个问题采用以下格式：
 
 ```
-❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
+❓ **Q1** - **<问题标题>**：<问题正文，可包含多段说明和多个选项>
 
-➡️ <your recommended answer>
+➡️ <你的推荐答案>
 ```
 
-Each round the user answers reshapes the tree: settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
+用户每轮的回答都会重塑设计树：已确定的决策让讨论向前推进，并解锁依赖它的问题。重新计算当前可决策问题，进入下一轮。如果某个问题依赖本轮尚未解决的另一问题，将它留到后续轮次。
 
-Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent to find it; don't ask the user for anything you could look up yourself. Don't block on it: a running exploration is an unsettled prerequisite, so only the questions downstream of it wait for the sub-agent to report; ask the rest of the frontier now. The _decisions_ are the user's: put each to them and wait.
+查明**事实**是你的职责。当前问题需要环境事实（文件系统、工具等）时，派子代理调查，自行查明能查到的信息。调查进行期间，将其视为尚未满足的前置条件：只等待依赖该调查结果的问题，其他已具备条件的问题照常询问。**决策**由用户作出，每项都应提交用户并等待回答。
 
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
+当前可决策问题为空、设计树的每个分支都已讨论、所有假设都已说明时，会话结束。用户确认已达成共同理解后再行动。

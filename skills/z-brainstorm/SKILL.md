@@ -1,50 +1,51 @@
 ---
 name: z-brainstorm
-description: Investigate the codebase, confirm requirements, and create or revise an executable plan document when the user explicitly plans persistent work or revisits the requirements of an existing Zyes task.
+description: 用户明确规划需要持久保存的工作，或重新讨论已有 Zyes 任务的需求时，调查代码、确认需求，并创建或修订可执行计划文档。
+disable-model-invocation: true
 ---
 
-# Plan a requirement
+# 规划需求
 
-Turn a user request into a confirmed, executable plan document. During planning you may investigate the repo and maintain domain vocabulary while keeping product code unchanged.
+将用户需求整理为经确认、可执行的计划文档。规划期间可以调查仓库、维护领域术语，保持产品代码不变。
 
-For the same unfinished task, use the user's specified plan or the current plan and read it before investigating. Clarifications, solution changes, and scope adjustments default to revising that plan after confirmation. Split unfinished work into a new plan only for an independent goal or when the user explicitly asks to split it; judge by the task goal, not discussion length or change size.
+同一未完成任务优先使用用户指定的计划或当前计划，调查前先阅读全文。需求澄清、方案变化和范围调整，经确认后默认修订原计划。仅在目标独立或用户明确要求拆分时另建计划；根据任务目标判断，讨论长度和改动大小不作为拆分依据。
 
-Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; cross-repo paths are external code references, with the starting repo remaining the Zyes root.
+从仓库的 `<!-- zyes:start -->` 块解析 `<ZYES_PROJECT_ROOT>`：相对 `Root` 按仓库根目录解析，`<ZYES_HOME>` 从全局 `<!-- zyes-global:start -->` 块替换。始终以 agent 启动时工作目录（cwd）所属的仓库为锚点；跨仓库路径作为外部代码引用，Zyes 根目录仍归属起始仓库。
 
-**If the project root cannot be resolved**, ask the user in one line: initialize Zyes to persist this plan?
+**无法解析项目根目录时**，用一句话询问：是否初始化 Zyes 来保存这份计划？
 
-- User agrees → hand off to `z-init`, then return to this skill.
-- User declines or just wants a quick fix → **stop this skill** and handle the request with the agent's own capabilities.
+- 用户同意 → 转交 `z-init`，完成后返回本 skill。
+- 用户拒绝或只想快速修复 → **停止本 skill**，使用 agent 自身能力处理。
 
-Plan documents are saved under `<ZYES_PROJECT_ROOT>/plans/active/`, one directory per plan.
+计划保存在 `<ZYES_PROJECT_ROOT>/plans/active/`，每份计划独占一个目录。
 
-## Getting the current date
+## 获取当前日期
 
-Whenever you need today's date — for a plan directory name or the `created` field — **obtain it by actually running a command** (`date +%F` on macOS/Linux, `Get-Date -Format yyyy-MM-dd` in Windows PowerShell). Use command output as the source of truth because conversation and document dates are often stale. If command execution is unavailable, ask the user for today's date.
+需要今天的日期时，例如命名计划目录或填写 `created`，**实际执行命令获取**：macOS/Linux 使用 `date +%F`，Windows PowerShell 使用 `Get-Date -Format yyyy-MM-dd`。对话和文档中的日期可能过期，以命令输出为准。无法执行命令时，询问用户当天日期。
 
-## Output language
+## 输出语言
 
-Write the plan document — including section headings, decisions, acceptance criteria, and progress log — in the **same language the user is conversing in**. If the repo's existing docs/plans are clearly in another language, match those instead. Translate the section-heading labels in the template below into the output language. Keep the frontmatter keys (`status`, `created`, `slug`) and their enum values in English; translate only human-readable prose.
+计划文档的标题、决策、验收条件和进度日志使用**用户当前对话的语言**。仓库已有文档或计划明确使用其他语言时，沿用已有语言。将下方模板中的标题翻译为输出语言；front matter 字段 `status`、`created`、`slug` 及枚举值保留英文，仅翻译供人阅读的文字。
 
-## 1. Investigate and interrogate
+## 1. 调查与追问
 
-1. Read the code, tests, config, and project docs relevant to the request.
-2. Read `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` (if present) and the ADRs relevant to the area you're touching, and reuse the domain vocabulary already defined.
-3. When there are **substantive decisions** that need the user's call, apply the rules from [z-grilling](../z-grilling/SKILL.md): map decisions as a dependency tree, ask the current frontier in rounds, look up facts you can find yourself, offer a recommended answer for each question, and land the document after shared understanding. Ask only questions that affect behavior, scope, acceptance, or risk.
+1. 阅读与需求相关的代码、测试、配置和项目文档。
+2. 阅读 `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md`（如存在）和当前领域相关的 ADR，沿用已有术语。
+3. 遇到**需要用户决定的实质性问题**时，应用 [z-grilling](../z-grilling/SKILL.md) 的规则：梳理决策依赖树，分轮询问当前可决策的问题，自行查明事实，为每个问题提供推荐答案，达成共识后再落地文档。只询问影响行为、范围、验收或风险的问题。
 
-While interrogating, whenever a domain term gets pinned down, an existing term turns out to be overloaded, or the user's wording contradicts the glossary, hand off to [z-domain](../z-domain/SKILL.md) and record it immediately. That is the moment the wording and the reason are both still in hand.
+追问过程中，领域术语一经明确、已有术语出现多义，或用户表述与术语表冲突，就转交 [z-domain](../z-domain/SKILL.md) 及时记录，保留当时的措辞和原因。
 
-## 2. Land or revise the plan document
+## 2. 创建或修订计划
 
-Once decisions converge, show a concise summary of the requirements or changes and ask for confirmation. For an existing plan, update the affected requirements, key rules, acceptance criteria, and milestones in place, preserve its identity and any `in-progress` status, and append one progress-log line with the change and reason. Preserve valid completed items; uncheck items invalidated by the change and add any necessary rework. Keep only what execution and resumption need.
+决策收敛后，简要汇总需求或变更，请用户确认。已有计划在原处更新受影响的需求、关键规则、验收条件和里程碑，保留计划标识和已有的 `in-progress` 状态，并在进度日志追加一行变更及原因。保留仍有效的完成项，将因变更失效的项目取消勾选，并补充必要的返工项。内容仅保留执行和恢复任务所需的信息。
 
-For a new plan, after confirmation create one directory and write the plan document inside it:
+新计划经确认后，创建一个目录并写入计划文档：
 
 ```text
 <ZYES_PROJECT_ROOT>/plans/active/YYYY-MM-DD-<slug>/PLAN.md
 ```
 
-`slug` is the title normalized to lowercase kebab-case; the date is today's, obtained as described in "Getting the current date" above. For a new plan, create only `PLAN.md`; `z-implement` adds `artifacts/` and the "Artifacts" section only when necessary materials for user-performed actions need a separate Markdown document. If a directory of the same name already exists, let the user choose to continue that plan or pick another name. Use the fixed structure below (translate the headings into the output language):
+`slug` 由标题规范化为小写 kebab-case；日期按上文“获取当前日期”取得。新建时只创建 `PLAN.md`；需要供用户操作的材料独立成文时，由 `z-implement` 添加 `artifacts/` 和“附件”章节。同名目录已存在时，请用户选择继续原计划或更换名称。使用以下固定结构，并将标题翻译为输出语言：
 
 ```markdown
 ---
@@ -52,36 +53,36 @@ status: ready          # planning | ready | in-progress | done | cancelled
 created: YYYY-MM-DD
 slug: <slug>
 ---
-# <Title>
+# <标题>
 
-## Requirement Summary
-1-3 sentences: the problem, why it matters now, and the desired result.
+## 需求摘要
+用 1-3 句话说明问题、当前需要解决的原因和期望结果。
 
-## Requirement Items
-- R1: <positive requirement statement>
+## 需求项
+- R1: <正向描述的需求>
 
-## Key Rules
-- K1: <confirmed rule or constraint that affects implementation>
+## 关键规则
+- K1: <经确认、影响实施的规则或约束>
 
-## Acceptance Criteria
-- [ ] AC1: <observable outcome>
+## 验收条件
+- [ ] AC1: <可观察的结果>
 
-## Implementation Milestones
-- [ ] 1. <key milestone, independently verifiable when complete>
+## 实施里程碑
+- [ ] 1. <完成后可独立验证的关键里程碑>
 - [ ] 2. ...
 
-## Progress Log
-- pending
+## 进度日志
+- 待开始
 ```
 
-Write requirements as positive statements. Reserve negative boundaries for likely mistakes, explicit user rejections, and safety limits. Keep "Key Rules" to confirmed rules that steer execution.
+使用正向表述描述需求。否定边界仅用于容易误做的事项、用户明确拒绝的内容和安全限制。“关键规则”仅记录经确认、影响执行的规则。
 
-Split implementation milestones into independently verifiable key nodes needed to satisfy the acceptance criteria. Prefer reusing existing code and project conventions discovered during investigation. Keep the plan inside confirmed scope: required functionality, necessary verification, and directly relevant docs. For plans that have not started execution, set `status` to `ready` after confirmation; use `planning` while initial decisions remain unsettled.
+优先复用现有实现和项目惯例，以满足已确认需求的最简单方案制定计划。讨论中发现的扩展需求，经用户确认后纳入范围。里程碑按可独立验证的关键节点拆分，覆盖需求、必要验证和直接相关文档。新计划在确认后设为 `ready`，初始决策尚未明确时使用 `planning`。
 
-## 3. Long-lived domain knowledge
+## 3. 长期领域知识
 
-Terms and load-bearing decisions are owned by [z-domain](../z-domain/SKILL.md) — terms are recorded inline during interrogation (section 1), and a decision is promoted to an ADR only when it constrains future work beyond this plan. Everything specific to this plan stays in "Key Rules" above.
+术语和重要决策由 [z-domain](../z-domain/SKILL.md) 管理：术语在追问时及时记录（第 1 节），决策只有在约束未来任务时才提升为 ADR。仅适用于本计划的内容保留在“关键规则”中。
 
-## Report
+## 汇报
 
-After creating or revising the document, report its absolute path and `status`, and note that `z-implement` can start or continue execution.
+创建或修订文档后，报告绝对路径和 `status`，说明可通过 `z-implement` 开始或继续实施。

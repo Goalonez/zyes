@@ -1,134 +1,135 @@
 ---
 name: z-init
-description: Initialize the Zyes workflow for the current repo — choose the storage location, write the project and global config blocks, and scaffold the workspace. Use only when the user explicitly asks, or when another Zyes skill cannot resolve a project root and needs initialization.
+description: 初始化当前仓库的 Zyes 工作流：选择存储位置、写入项目与全局配置块，并创建工作区骨架。仅在用户明确要求，或其他 Zyes skill 无法解析项目根目录、需要初始化时使用。
+disable-model-invocation: true
 ---
 
-# Set up Zyes
+# 初始化 Zyes
 
-Determine a single Zyes project root for the current repo, write a locator managed block into the project description file, install the shared workflow rules into the user's global description file, and scaffold the storage directory structure. This skill configures the storage location and creates the always-needed directories plus a `CONTEXT.md` starter. Plan documents are created later by `z-brainstorm`. Show the full draft and get explicit confirmation from the user before writing anything; when updating an existing file, touch only the managed block and preserve all other content.
+确定当前仓库唯一的 Zyes 项目根目录，在项目说明文件中写入定位配置块，将共享规则写入用户的全局说明文件，并创建存储目录骨架。本 skill 配置存储位置，创建基础目录和 `CONTEXT.md` 骨架；计划文档由后续 `z-brainstorm` 创建。写入前展示完整草案并取得用户明确确认；更新已有文件时，仅修改托管块，保留其他内容。
 
-Config lives in two files: the project block carries only the per-repo values, and its presence marks the repo as using Zyes; the global block carries the rules shared by every project, so later updates happen in one place.
+配置分为两部分：项目块保存当前仓库的配置，并标记仓库已启用 Zyes；全局块保存各项目共享的规则，后续统一维护。
 
-## Directory layout
+## 目录结构
 
-The same layout applies in both modes. The init step creates only the always-needed skeleton up front — the two `plans/` subdirectories and a `CONTEXT.md` starter — so the workspace is ready to use immediately:
+两种模式使用相同布局。初始化只创建基础骨架：`plans/` 下的两个子目录，以及 `CONTEXT.md` 初始文件：
 
 ```text
 <ZYES_PROJECT_ROOT>/
 ├── plans/
-│   ├── active/                      # in-progress plans, one directory per plan
-│   │   └── YYYY-MM-DD-<slug>/       # created by z-brainstorm
-│   │       ├── PLAN.md              # the plan document itself
-│   │       └── artifacts/           # optional Markdown materials for manual actions
-│   └── done/                        # completed / cancelled plans (whole directories)
-└── knowledge/                       # filled in by z-domain, empty until then
-    └── CONTEXT.md                   # project glossary (created as a starter skeleton)
+│   ├── active/                      # 进行中的计划，每份计划一个目录
+│   │   └── YYYY-MM-DD-<slug>/       # 由 z-brainstorm 创建
+│   │       ├── PLAN.md              # 计划文档
+│   │       └── artifacts/           # 可选，供用户手动操作的 Markdown 材料
+│   └── done/                        # 已完成或取消的计划，整体目录归档
+└── knowledge/                       # 由 z-domain 填充，初始仅有骨架
+    └── CONTEXT.md                   # 项目术语表
 ```
 
-**One plan is one directory.** The plan document is always named `PLAN.md`. Keep concise task conclusions and necessary manual steps in it; create `artifacts/` only when necessary materials for user-performed actions need a separate Markdown document. This keeps each plan self-contained, so wrapping up moves one directory and the relative links inside `PLAN.md` stay valid. This skill creates only `plans/active/`, `plans/done/`, and `knowledge/CONTEXT.md` — individual plan directories, their `artifacts/`, and `knowledge/adr/` are created later, on demand.
+**一份计划对应一个目录**，计划文档固定命名为 `PLAN.md`。简短任务结论和必要人工步骤保留在文档中；人工操作材料需要独立成文时，再创建 `artifacts/`。收尾时整体移动计划目录，保持相对链接有效。初始化仅创建 `plans/active/`、`plans/done/` 和 `knowledge/CONTEXT.md`；具体计划目录、`artifacts/` 和 `knowledge/adr/` 按需创建。
 
-The `knowledge/` scaffold is created empty on purpose, so the workspace shows from day one where domain vocabulary belongs. [z-domain](../z-domain/SKILL.md) owns its contents, treats the starter as a placeholder to replace, and creates `knowledge/adr/` only when a decision qualifies as an ADR.
+`knowledge/` 初始保持骨架状态，用于明确领域术语的存放位置。[z-domain](../z-domain/SKILL.md) 负责维护内容，在首个术语明确时替换占位内容，在决策符合 ADR 条件时创建 `knowledge/adr/`。
 
-## Anchoring rule
+## 根目录锚定规则
 
-The Zyes root is **always anchored to the repo of the working directory (cwd) where the agent started**. Even when the user mentions or asks you to read/write files that belong to **another repo** (split front/back end, multi-repo microservices, etc.), keep resolving Zyes from the starting repo. Cross-repo files count as referenced external code locations, with the starting repo remaining the Zyes root. All Zyes skills follow this rule when resolving the root.
+Zyes 根目录**始终归属 agent 启动时工作目录（cwd）所在的仓库**。即使用户要求读写其他仓库中的文件，如前后端分仓或多个微服务仓库，也从起始仓库解析 Zyes 配置。跨仓库文件作为外部代码引用，所有 Zyes skill 均遵循此规则。
 
-A project config is usable when its `zyes` block has a `Root` that resolves to a concrete path. Resolve relative values against the repo root; when `Root` contains `<ZYES_HOME>`, substitute the home recorded in `zyes-global`. `Mode` is a readability label; `Root` alone determines the path.
+项目 `zyes` 块中的 `Root` 能解析为具体路径时，配置可用。相对路径按仓库根目录解析；`Root` 包含 `<ZYES_HOME>` 时，使用全局 `zyes-global` 块中的主目录替换。`Mode` 仅用于说明，实际路径由 `Root` 决定。
 
-## 1. Explore
+## 1. 检查配置
 
-Find the repo root by walking up from the current directory (see anchoring rule above). To locate the root, only check for repo markers such as `.git`. Then read only the specific files this skill requires:
+从当前目录向上查找仓库根目录，遵循上述锚定规则。查找时仅检查 `.git` 等仓库标识，然后读取本 skill 所需文件：
 
-- `AGENTS.md` at the repo root;
-- any existing `<!-- zyes:start -->` managed block in that file;
-- the `<!-- zyes-global:start -->` managed block in the global `AGENTS.md` available to the current session.
+- 仓库根目录的 `AGENTS.md`；
+- 其中已有的 `<!-- zyes:start -->` 托管块；
+- 当前会话可用的全局 `AGENTS.md` 中的 `<!-- zyes-global:start -->` 托管块。
 
-Keep reads narrowly scoped to the paths above. This skill only needs the description files and their managed blocks, so target `AGENTS.md` directly instead of listing or scanning the whole repo. Exclude unrelated artifacts from initialization reads, especially `.env`, credentials, source code, dependency directories, and build output.
+读取范围限定在上述路径，直接定位 `AGENTS.md`。初始化只需要说明文件及其托管块；`.env`、凭据、源码、依赖目录和构建产物等无关内容不在读取范围内。
 
-Use the repo root's `AGENTS.md` for project config; if absent, include its creation in the draft for confirmation.
+项目配置使用仓库根目录的 `AGENTS.md`；文件缺失时，将创建文件列入草案，等待确认。
 
-Use the current agent's global `AGENTS.md` for shared rules, reusing its `zyes-global` block when present. If the target path is unclear, ask the user.
+共享规则使用当前 agent 的全局 `AGENTS.md`，复用已有 `zyes-global` 块。目标路径不明确时询问用户。
 
-## 2. Choose a mode
+## 2. 选择模式
 
-When the existing project block has a resolvable `Root`, prefer keeping its current mode and ask whether to reconfigure. Otherwise let the user choose:
+项目块的 `Root` 已可解析时，优先保留当前模式，并询问是否重新配置。否则请用户选择：
 
-- `shared`: `Root` is `.zyes`, so the workspace sits alongside the codebase and is reachable by anyone working in the repo.
-- `external`: `Root` is `<ZYES_HOME>/<project-name>` (e.g. a personal Obsidian vault); the repo managed block stays free of a personal absolute path.
+- `shared`：`Root` 为 `.zyes`，工作区位于代码仓库中，供协作者共同使用。
+- `external`：`Root` 为 `<ZYES_HOME>/<project-name>`，例如存放于个人 Obsidian 库；仓库配置块保留占位形式。
 
-For external mode, read the Zyes home from the global `<!-- zyes-global:start -->` block; if absent, ask for the absolute path and write it into that block. The project name defaults to the repo directory name normalized to lowercase kebab-case. When the target directory already exists but cannot be confirmed as belonging to the current repo, show the conflict and let the user choose to reuse or rename.
+外部模式从全局 `<!-- zyes-global:start -->` 块读取 Zyes 主目录；缺失时询问绝对路径，并写入全局块。项目名默认使用仓库目录名的小写 kebab-case 形式。目标目录已存在但无法确认归属当前仓库时，展示冲突，请用户选择复用或改名。
 
-## 3. Show and confirm
+## 3. 展示并确认
 
-Show in one go: the mode, the final absolute project root, the directory skeleton to be created (the `plans/active` and `plans/done` directories plus the `CONTEXT.md` starter), the project managed block to be written, and the global managed block together with the path of the global file it goes into. Then ask the user to confirm writing both files and scaffolding the workspace, and invite them to describe any changes instead — phrase this in the language the user is conversing in. Proceed only after explicit confirmation. If the external path is outside the writable scope, request runtime authorization separately.
+一次展示：模式、最终项目根目录绝对路径、将创建的目录骨架（`plans/active`、`plans/done` 和 `CONTEXT.md`）、项目托管块、全局托管块及其目标文件路径。使用用户当前对话的语言，请用户确认写入两个文件并创建工作区，也可提出调整意见。取得明确确认后再执行。外部目录超出可写范围时，另行申请运行时授权。
 
-## 4. Write and verify
+## 4. 写入与验证
 
-- Create the directory skeleton under the project root: `plans/active/`, `plans/done/`, and a `knowledge/CONTEXT.md` starter (see the template below). Preserve existing content when a path already exists.
-- Add or update the project managed block in place, with one corresponding block per file.
-- Update the global block in both modes, keeping any home path already recorded there.
-- Re-read all written files to confirm correctness.
-- Report the mode, project root, the created directories and `CONTEXT.md`, and both modified description files. Remind the user to open a new session to load the global config. If there's a pending requirement, ask whether to proceed to `z-brainstorm`.
+- 在项目根目录下创建 `plans/active/`、`plans/done/` 和 `knowledge/CONTEXT.md` 骨架，模板见下文。路径已存在时保留已有内容。
+- 在原处添加或更新项目托管块，每个文件只保留一个对应块。
+- 两种模式均更新全局块，保留已有主目录路径。
+- 重新读取所有写入文件，确认内容正确。
+- 汇报模式、项目根目录、新建目录与 `CONTEXT.md`，以及两个修改后的说明文件。提醒用户开启新会话加载全局配置；有待处理需求时，询问是否继续使用 `z-brainstorm`。
 
-## Managed block templates
+## 托管块模板
 
-### Project block
+### 项目块
 
-Both modes share this shape; only the two values differ.
+两种模式结构相同，仅两个配置值不同：
 
 ```markdown
 <!-- zyes:start -->
-## Zyes workflow
+## Zyes 工作流
 
 - Mode: `shared`
 - Root: `.zyes`
 
-Zyes is enabled for this repo. The workflow rules live in the `zyes-global` block of the user's global `AGENTS.md`.
-Only use this section when the current agent has Zyes skills installed and callable; otherwise ignore it and follow the project's existing workflow.
+当前仓库已启用 Zyes。共享规则位于用户全局 `AGENTS.md` 的 `zyes-global` 块中。
+当前 agent 已安装并可调用 Zyes skills 时使用本节；否则忽略本节，沿用项目现有流程。
 <!-- zyes:end -->
 ```
 
-For external mode the only difference is:
+外部模式仅替换以下配置：
 
 ```markdown
 - Mode: `external`
 - Root: `<ZYES_HOME>/project-name`
 ```
 
-### Global block
+### 全局块
 
-Goes into the user's global `AGENTS.md`. Keep the home line only when a Zyes home path is known.
+写入用户的全局 `AGENTS.md`。已知 Zyes 主目录时，保留对应路径行。
 
 ```markdown
 <!-- zyes-global:start -->
-## Zyes workflow
+## Zyes 工作流
 
 Zyes external home: `/absolute/path/to/zyes-home`
 
-**This section applies only when the current repo's root `AGENTS.md` contains a `<!-- zyes:start -->` block, and only when the current agent has Zyes skills installed and callable.** Otherwise ignore it entirely and leave initialization to explicit user requests.
+**当前仓库根目录的 `AGENTS.md` 包含 `<!-- zyes:start -->` 块，且 agent 已安装并可调用 Zyes skills 时，本节生效。** 其他情况忽略本节，由用户明确要求初始化。
 
-Resolve `<ZYES_PROJECT_ROOT>` from that block's `Root` value: substitute `<ZYES_HOME>` with the home path above, and resolve a relative path against the repo root.
+从项目块的 `Root` 解析 `<ZYES_PROJECT_ROOT>`：将 `<ZYES_HOME>` 替换为上述主目录，相对路径按仓库根目录解析。
 
-- Use Zyes skills for work worth persisting across sessions. Plan documents are saved as `<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/PLAN.md`. For the same unfinished task, revise the current plan after confirmation; split only for an independent goal or an explicit user request.
-- Keep task records concise in `PLAN.md`, and generate additional task materials only when the user needs to use them. Use `artifacts/` only for necessary manual-action materials that need a separate Markdown document, such as SQL to execute manually; put SQL in fenced code blocks.
-- Before work that touches this project's domain, read the glossary `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` and any relevant ADRs under `<ZYES_PROJECT_ROOT>/knowledge/adr/` if that directory exists, and reuse the vocabulary defined there.
+- 仅在用户明确要求使用 Zyes 时启动工作流。计划保存在 `<ZYES_PROJECT_ROOT>/plans/active/<date-slug>/PLAN.md`。同一未完成任务经确认后修订原计划；独立目标或用户要求拆分时另建计划。
+- 在 `PLAN.md` 中简记任务，仅在用户需要实际使用时生成额外材料。`artifacts/` 只存放需要独立成文的人工操作材料，例如待手动执行的 SQL；SQL 放在代码块中。
+- 执行 Zyes 任务时，读取 `<ZYES_PROJECT_ROOT>/knowledge/CONTEXT.md` 和 `<ZYES_PROJECT_ROOT>/knowledge/adr/` 下的相关 ADR（如存在），沿用已有约定。
 <!-- zyes-global:end -->
 ```
 
-Use lowercase kebab-case for the project name. Only one corresponding managed block may exist in a given file; update it in place when changing a value.
+项目名采用小写 kebab-case。每个文件只保留一个对应托管块，变更时原处更新。
 
-## CONTEXT.md starter
+## CONTEXT.md 骨架
 
-Create `knowledge/CONTEXT.md` with the skeleton below so later skills have a defined place to write into. Write the heading, prose, and placeholder in the language the user is conversing in.
+按下方结构创建 `knowledge/CONTEXT.md`，供后续 skill 写入。标题、说明和占位文字使用用户当前对话的语言。
 
 ```markdown
-# Project domain vocabulary
+# 项目领域术语
 
-> Shared terms for this project. Keep this file to concepts specific to this project's domain.
+> 项目共享术语，仅记录本项目领域特有的概念。
 
-## Language
+## 术语
 
-_To be filled when a domain term is confirmed._
+_明确首个领域术语后填写。_
 ```
 
-The `## Language` heading is the insertion point and the placeholder line marks the file as still empty. [z-domain](../z-domain/SKILL.md) deletes that line when it writes the first term.
+“术语”标题用于添加条目，占位行表示术语表尚为空。首次写入术语时，由 [z-domain](../z-domain/SKILL.md) 替换占位内容。

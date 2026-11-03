@@ -1,111 +1,111 @@
 ---
 name: z-domain
-description: Build and sharpen the project's long-lived domain knowledge — the glossary and architecture decision records. Use when pinning down domain terminology, resolving an overloaded term, or recording a hard-to-reverse decision, including when another Zyes skill needs the domain model maintained.
+description: 建立并完善项目的长期领域知识，包括术语表和架构决策记录。用于明确领域术语、消除术语歧义或记录难以逆转的决策，也用于其他 Zyes skill 需要维护领域模型时。
 ---
 
-# Maintain domain knowledge
+# 维护领域知识
 
-Actively build and sharpen the project's long-lived knowledge: the glossary (`knowledge/CONTEXT.md`) and architecture decision records (`knowledge/adr/`). This is the **active** discipline — challenging terms, surfacing contradictions, and writing things down the moment they crystallise.
+主动维护项目的长期知识：术语表（`knowledge/CONTEXT.md`）和架构决策记录（`knowledge/adr/`）。这是主动的领域建模工作：质疑术语、揭示冲突，并在结论形成时及时记录。
 
-Reading `CONTEXT.md` to reuse its vocabulary is the shared baseline across skills. This skill begins when you are **changing** the model.
+读取 `CONTEXT.md` 并沿用术语是各 skill 的共同基础；本 skill 在需要**修改领域模型**时介入。
 
-This knowledge outlives any single plan. A plan document records why *this* task looks the way it does and is archived with it; the glossary and ADRs record what *future* work must respect. Keep the two separate — see "Plan decisions vs ADRs" below.
+领域知识跨越单个计划。计划文档记录本次任务的设计原因，并随任务归档；术语表和 ADR 记录未来工作需要遵守的约定。两者分开维护，参见“计划决策与 ADR”。
 
-## Resolving the root and writing into the scaffold
+## 解析根目录与使用骨架
 
-Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; when another Zyes skill already resolved the root, reuse it.
+从仓库的 `<!-- zyes:start -->` 块解析 `<ZYES_PROJECT_ROOT>`：相对 `Root` 按仓库根目录解析，`<ZYES_HOME>` 从全局 `<!-- zyes-global:start -->` 块替换。始终以 agent 启动时工作目录（cwd）所属的仓库为锚点；其他 Zyes skill 已解析根目录时，直接复用。
 
-**If the project root cannot be resolved**, ask the user in one line whether to initialize Zyes; if they decline, stop this skill.
+**无法解析项目根目录时**，用一句话询问是否初始化 Zyes；用户拒绝则停止本 skill。
 
 ```text
 <ZYES_PROJECT_ROOT>/knowledge/
-├── CONTEXT.md          # the glossary
-└── adr/                # created on first qualifying ADR: NNNN-<slug>.md
+├── CONTEXT.md          # 术语表
+└── adr/                # 首次记录符合条件的 ADR 时创建：NNNN-<slug>.md
 ```
 
-`z-init` creates only the glossary starter; `adr/` may be absent until the first qualifying ADR. An empty scaffold means the domain model is still blank. Handle it as follows:
+`z-init` 只创建术语表骨架；首个符合条件的 ADR 出现前，`adr/` 可以不存在。空骨架表示领域模型尚未建立，按以下方式处理：
 
-- **`CONTEXT.md` holding only the starter** — a placeholder line marking the glossary as empty, with or without a `## Language` heading (starters written before this layout omit it): add the heading if it's absent, write the first term under it, delete the placeholder line, and reuse any existing `## Language` heading.
-- **`adr/` missing or empty**: create it only when an ADR qualifies; the next ADR is `0001-<slug>.md`.
-- **Either one missing** (a workspace initialized before this layout, or one the user pruned): create it when you have something to write.
+- **`CONTEXT.md` 仅有初始内容**：即表示术语表为空的占位行，可能带有“术语”标题（旧版为 `## Language`），也可能没有。沿用已有标题；缺失时补上，再写入首个术语并移除占位行。
+- **`adr/` 缺失或为空**：记录符合条件的 ADR 时再创建，首个文件为 `0001-<slug>.md`。
+- **任一部分缺失**：可能是旧版初始化或用户清理所致，在有内容可写时创建。
 
-Whatever the starting state, apply the same writing bar to every entry.
+无论初始状态如何，所有条目均采用相同的记录标准。
 
-## Output language
+## 输出语言
 
-Write the glossary and ADRs in the **same language the user is conversing in**. If existing entries or repo docs are clearly in another language, match those instead. Translate the template heading labels into the output language.
+术语表和 ADR 使用**用户当前对话的语言**。已有条目或仓库文档明确使用其他语言时，沿用已有语言。将模板标题翻译为输出语言。
 
-## During the session
+## 会话中如何维护
 
-### Challenge against the glossary
+### 对照术语表发现冲突
 
-When the user uses a term that conflicts with the existing language in `CONTEXT.md`, call it out immediately: "the glossary defines X as A, but you seem to mean B — which is it?"
+用户用词与 `CONTEXT.md` 中的定义冲突时，立即指出：“术语表将 X 定义为 A，你这里似乎指 B，具体是哪一种？”
 
-### Sharpen fuzzy language
+### 澄清模糊表述
 
-When the user uses a vague or overloaded term, propose a precise canonical term: "you're saying 'account' — do you mean the customer or the login user? Those are different things."
+遇到模糊或多义词时，提出明确的标准术语：“你说的‘账户’指客户还是登录用户？这两个概念不同。”
 
-### Cross-reference with the code
+### 与代码交叉核对
 
-When the user states how something works, check whether the code agrees. If you find a contradiction, surface it before recording the claim.
+用户描述系统行为时，检查代码是否一致。发现冲突后，先说明差异，再记录结论。
 
-### Write terms down inline
+### 及时记录术语
 
-The moment a term is resolved, write it into `CONTEXT.md` right there while the wording and reason are fresh. Use the glossary format below.
+术语明确后，立即按下方格式写入 `CONTEXT.md`，保留当时的措辞和原因。
 
-Use `CONTEXT.md` as a glossary: domain terms, definitions, and boundaries. Keep task scope and implementation decisions in the plan document.
+`CONTEXT.md` 用作术语表，记录领域术语、定义和边界。任务范围和实施决策保留在计划文档中。
 
-### Offer ADRs sparingly
+### 谨慎提出 ADR
 
-An ADR needs a high bar — see "When an ADR qualifies" below. Apply the tests below; when none qualifies, leave the ADR directory absent or unchanged.
+ADR 需要满足较高门槛，参见“ADR 的记录条件”。逐项判断；没有符合条件的决策时，保留 ADR 目录现状。
 
-## Glossary format
+## 术语表格式
 
-The file heading and the `## Language` section come from the `z-init` starter — leave them in place and add entries under the heading. One entry looks like:
+文件标题和“术语”章节由 `z-init` 创建，保留已有标题并在其下添加条目。每个条目采用以下格式：
 
 ```markdown
-**<Term>**:
-One or two sentences on what it IS, and its boundary against neighbouring concepts.
-_Avoid_: <rejected synonyms>
+**<术语>**：
+用一两句话说明概念本身，以及它与相邻概念的边界。
+_避免使用_：<弃用的同义词>
 ```
 
-Rules:
+规则：
 
-- **Be opinionated.** When several words exist for one concept, pick the best and list the rest under `_Avoid_`. A glossary entry needs a clear boundary against neighbouring concepts.
-- **Keep definitions tight.** One or two sentences. Define identity and boundary.
-- **Only terms specific to this project's domain.** Keep general programming concepts (timeouts, retries, error types, utility patterns) out. Before adding one, ask: is this unique to this project's business, or a general engineering concept? Only the former belongs.
-- **Group terms under subheadings** when natural clusters emerge; a flat list is fine otherwise.
-- Add a `## Relationships` section only when terms genuinely constrain each other; skip it otherwise.
-- When an entry is overturned or a term is retired, **rewrite or delete it in place**.
+- **明确选词**：同一概念有多个名称时，选择最合适的标准词，其余列入“避免使用”。每个条目应明确与相邻概念的边界。
+- **定义简短**：用一两句话说明概念和边界。
+- **仅记录项目特有的领域术语**：超时、重试、错误类型、通用工具模式等编程概念属于通用工程知识。新增前先判断：这是项目特有的业务概念，还是通用工程概念？只有前者进入术语表。
+- **按自然形成的类别分组**：适合时使用小标题，平铺列表也可以。
+- 术语之间确有相互约束时，再添加“关系”章节。
+- 条目被推翻或术语停用时，直接改写或移除原条目。
 
-## ADR format
+## ADR 格式
 
-ADRs live in `<ZYES_PROJECT_ROOT>/knowledge/adr/` with sequential numbering: `0001-<slug>.md`. Create the directory only when writing a qualifying ADR. Scan the directory for the highest existing number and increment by one.
+ADR 保存在 `<ZYES_PROJECT_ROOT>/knowledge/adr/`，按 `0001-<slug>.md` 顺序编号。写入符合条件的 ADR 时再创建目录，扫描已有最大编号后加一。
 
 ```markdown
-# <Short title of the decision>
+# <决策的简短标题>
 
-<1-3 sentences: the context, what was decided, and why.>
+<用 1-3 句话说明背景、最终决策及原因。>
 ```
 
-That's it — an ADR can be a single paragraph. The value is in recording **that** a decision was made and **why**. Add `Considered options` when rejected alternatives are worth remembering, and `Consequences` when downstream effects are non-obvious.
+一段话即可构成 ADR，价值在于记录做了什么决定，以及为什么。被否决的方案值得保留时，补充“考虑过的方案”；后续影响不直观时，补充“影响”。
 
-### When an ADR qualifies
+### ADR 的记录条件
 
-All three must be true:
+以下三项必须同时满足：
 
-1. **Hard to reverse** — the cost of changing your mind later is meaningful.
-2. **Needs context** — a future reader needs the recorded reason to understand why the code works this way.
-3. **The result of a real trade-off** — there were genuine alternatives and one was picked for specific reasons.
+1. **难以逆转**：未来改变决定的成本较高。
+2. **依赖背景**：后续维护者需要知道原因，才能理解代码为何如此设计。
+3. **经过真实权衡**：确有多个可行方案，并基于具体原因作出了选择。
 
-All three must hold. Reversible choices, obvious implementation moves, and choices with a single viable path stay plan-scoped.
+可逆的选择、显而易见的实现方式、只有一条可行路径的选择，保留在计划范围内。
 
-What typically qualifies: architectural shape; integration patterns between modules or systems; technology choices carrying real lock-in; ownership and boundary decisions; deliberate deviations from the obvious path; and constraints invisible in the code (compliance, a partner API's response-time contract).
+典型情况包括：架构形态、模块或系统间的集成模式、带来显著绑定成本的技术选择、职责与边界划分、有意偏离常规做法的决定，以及代码中不直观的约束，如合规要求或对接方 API 的响应时间约定。
 
-### Plan decisions vs ADRs
+### 计划决策与 ADR
 
-A plan document's "Key Rules" section (or legacy "Key Decisions") already records why that plan looks the way it does, and it is archived together with the plan. Before promoting anything to an ADR, ask:
+计划文档的“关键规则”（旧版为“关键决策”）已经记录本计划的设计原因，并随计划归档。提升为 ADR 前，先问：
 
-> Six months from now, could someone changing this area need to know why this choice was made?
+> 六个月后，有人修改这个领域时，是否仍需要知道当初为什么这样决定？
 
-When the answer is yes, promote the decision to an ADR. Otherwise keep it plan-scoped. The three tests above still apply — this one only separates plan-scoped decisions from ones that outlive the plan.
+需要时提升为 ADR，否则保留在计划中。上述三项条件仍须同时满足；这个问题只用于区分计划内决策与长期决策。

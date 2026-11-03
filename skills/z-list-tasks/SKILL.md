@@ -1,43 +1,44 @@
 ---
 name: z-list-tasks
-description: List the status, progress, and next step of all plan documents in the current project. Use only when the user explicitly asks to list or query plan status.
+description: 列出当前项目所有计划文档的状态、进度和下一步。仅在用户明确要求列出计划或查询计划状态时使用。
+disable-model-invocation: true
 ---
 
-# List plans
+# 列出计划
 
-Read-only summary of the current project's Zyes plan documents.
+只读汇总当前项目的 Zyes 计划。
 
-Resolve `<ZYES_PROJECT_ROOT>` from the repo's `<!-- zyes:start -->` block: resolve a relative `Root` against the repo root, or substitute `<ZYES_HOME>` from the global `<!-- zyes-global:start -->` block. Anchor it to the repo of the working directory (cwd) where the agent started; cross-repo paths are external code references, with the starting repo remaining the Zyes root. If the root cannot be resolved, state that the project's Zyes plans cannot be located and point the user to `z-init`.
+从仓库的 `<!-- zyes:start -->` 块解析 `<ZYES_PROJECT_ROOT>`：相对 `Root` 按仓库根目录解析，`<ZYES_HOME>` 从全局 `<!-- zyes-global:start -->` 块替换。始终以 agent 启动时工作目录（cwd）所属的仓库为锚点；跨仓库路径作为外部代码引用，Zyes 根目录仍归属起始仓库。无法解析时，说明当前项目的 Zyes 计划无法定位，并提示用户使用 `z-init`。
 
-## Collect
+## 收集
 
-Collect every plan under `<ZYES_PROJECT_ROOT>/plans/active/`, covering both layouts:
+读取 `<ZYES_PROJECT_ROOT>/plans/active/` 下的全部计划，覆盖两种布局：
 
-- current layout: one directory per plan, so read `plans/active/*/PLAN.md`;
-- legacy layout: a flat `plans/active/*.md` file. Read these in place and preserve their layout.
+- 当前布局：每份计划一个目录，读取 `plans/active/*/PLAN.md`。
+- 旧版布局：直接放在目录下的 `plans/active/*.md`，按原位置读取并保留布局。
 
-For each document parse:
+对每份文档解析：
 
-- `status`, `created`, `slug` from frontmatter;
-- the top-level heading as the title;
-- the count of `- [x]` vs total items in "Implementation Milestones" for progress; for legacy plans, read "Execution Steps";
-- the "next step" from the last line of the "Progress Log", or the default action for the status if absent.
+- front matter 中的 `status`、`created`、`slug`；
+- 顶级标题作为计划名称；
+- “实施里程碑”（`Implementation Milestones`）中 `- [x]` 的数量及总项数，旧版读取“执行步骤”（`Execution Steps`）；
+- “进度日志”（`Progress Log`）最后一行中的下一步；缺失时使用状态对应的默认动作。
 
-When the user explicitly asks, also read `plans/done/` to show historical plans.
+用户明确要求查看历史计划时，再读取 `plans/done/`。
 
-## Output
+## 输出
 
-Output a compact table sorted by `created`:
+按 `created` 排序，输出简洁表格：
 
-| Status | Title | Progress | Next step | Path |
+| 状态 | 标题 | 进度 | 下一步 | 路径 |
 | --- | --- | --- | --- | --- |
-| `in-progress` | … | 2/5 | next step from progress log | plans/active/2026-07-30-slug/PLAN.md |
+| `in-progress` | … | 2/5 | 进度日志中的下一步 | plans/active/2026-07-30-slug/PLAN.md |
 
-Default next-step actions by status:
+各状态的默认下一步：
 
-- `planning`: continue `z-brainstorm` to finish requirement confirmation and land the document.
-- `ready`: use `z-implement` to start the first milestone.
-- `in-progress`: use `z-implement` to continue the next unchecked milestone (prefer the next step from the progress log).
-- `done` / `cancelled`: wrapped up; list only when viewing history.
+- `planning`：继续使用 `z-brainstorm`，完成需求确认并保存计划。
+- `ready`：使用 `z-implement` 开始首个里程碑。
+- `in-progress`：使用 `z-implement` 继续下一个未完成里程碑，优先采用进度日志中的下一步。
+- `done` / `cancelled`：已收尾，仅在查看历史时列出。
 
-When `plans/active/` is empty, simply state that the active plan list is empty. After the table, note only genuine anomalies that affect continuing work (e.g. a document missing frontmatter, or a status that contradicts its content). Report explicit document state and leave plan selection/execution to the user.
+`plans/active/` 为空时，直接说明当前没有活跃计划。表格后仅补充影响继续执行的真实异常，如缺少 front matter 或状态与内容冲突。按文档实际状态汇报，计划选择与执行由用户决定。
