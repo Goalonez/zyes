@@ -38,7 +38,7 @@ disable-model-invocation: true
 
 - `planning`：继续使用 `z-brainstorm`，完成需求确认并保存计划。
 - `ready`：使用 `z-implement` 开始首个里程碑。
-- `in-progress`：使用 `z-implement` 继续下一个未完成里程碑，优先采用进度日志中的下一步。
+- `in-progress`：优先采用进度日志中的下一步。仍有未完成里程碑时，使用 `z-implement` 继续实施；里程碑均已完成时，结合验收条件和日志提示独立审查、人工验收或待归档，信息不足时说明下一步待确认。
 - `done` / `cancelled`：已收尾，仅在查看历史时列出。
 
 `plans/active/` 为空时，直接说明当前没有活跃计划。表格后仅补充影响继续执行的真实异常，如缺少 front matter 或状态与内容冲突。按文档实际状态汇报，计划选择与执行由用户决定。
