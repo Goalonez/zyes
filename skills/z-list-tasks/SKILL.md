@@ -12,16 +12,13 @@ disable-model-invocation: true
 
 ## 收集
 
-读取 `<ZYES_PROJECT_ROOT>/plans/active/` 下的全部计划，覆盖两种布局：
-
-- 当前布局：每份计划一个目录，读取 `plans/active/*/PLAN.md`。
-- 旧版布局：直接放在目录下的 `plans/active/*.md`，按原位置读取并保留布局。
+读取 `<ZYES_PROJECT_ROOT>/plans/active/*/PLAN.md`，每份计划对应一个目录。
 
 对每份文档解析：
 
 - front matter 中的 `status`、`created`、`slug`；
 - 顶级标题作为计划名称；
-- “实施里程碑”（`Implementation Milestones`）中 `- [x]` 的数量及总项数，旧版读取“执行步骤”（`Execution Steps`）；
+- “实施里程碑”（`Implementation Milestones`）中 `- [x]` 的数量及总项数；
 - “进度日志”（`Progress Log`）最后一行中的下一步；缺失时使用状态对应的默认动作。
 
 用户明确要求查看历史计划时，再读取 `plans/done/`。
